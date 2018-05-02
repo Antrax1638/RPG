@@ -12,6 +12,7 @@ public class FSMManager : MonoBehaviour
 	{
 		DefaultObject = Instantiate (Default.gameObject,transform);
 		Default = DefaultObject.GetComponent<State> ();
+		Default.transform.localPosition = Vector3.zero;
 	}
 
 	void Update()
@@ -29,6 +30,7 @@ public class FSMManager : MonoBehaviour
 			if (OldState.TransitionState != null) 
 			{
 				DefaultObject = Instantiate (OldState.TransitionState.gameObject,transform);
+				DefaultObject.transform.localPosition = Vector3.zero;
 				Default = DefaultObject.GetComponent<State> ();
 				Destroy (OldObject);
 			}

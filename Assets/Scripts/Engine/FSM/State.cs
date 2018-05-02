@@ -49,7 +49,7 @@ public class State : MonoBehaviour
 
 	public int AddTransition(Transition NewTransition)
 	{
-		if (Transitions.Length <= 0)
+		if (Transitions == null)
 		{
 			Transitions = new Transition[1];
 			Transitions [0] = NewTransition;

@@ -19,31 +19,32 @@ public class StateEditor : Editor
 		GUILayout.Space (10);
 		EditorGUILayout.BeginVertical ("Box");
 		EditorGUILayout.BeginHorizontal ();
-		string StatesTitle = (!StatesExtend) ? "Expand" : "Contract";
-		GUILayout.Space (10);
-		StatesExtend = EditorGUILayout.Foldout (StatesExtend,(StatesTitle +" Transitions"),true);
-		GUI.skin.label.alignment = TextAnchor.MiddleRight;
-		GUILayout.Label ("Length: ["+Target.Transitions.Length+"]");
+			string StatesTitle = (!StatesExtend) ? "Expand" : "Contract";
+			GUILayout.Space (10);
+			StatesExtend = EditorGUILayout.Foldout (StatesExtend,(StatesTitle +" Transitions"),true);
+			GUI.skin.label.alignment = TextAnchor.MiddleRight;
+			if(Target.Transitions != null)
+				GUILayout.Label ("Length: ["+Target.Transitions.Length+"]");
 		EditorGUILayout.EndHorizontal ();
-		if (StatesExtend)
+		if (StatesExtend && Target.Transitions != null)
 		{
 			for (int i = 0; i < Target.Transitions.Length; i++) 
 			{
 				EditorGUILayout.BeginHorizontal ();
 				Target.Transitions [i].Enter = EditorGUILayout.ToggleLeft("Enter",Target.Transitions [i].Enter,GUILayout.MaxWidth(80));
-				Target.Transitions [i].State = (State)EditorGUILayout.ObjectField (Target.Transitions [i].State, typeof(GameObject), true);
+				Target.Transitions [i].State = (State)EditorGUILayout.ObjectField (Target.Transitions [i].State, typeof(State), true);
 				if (GUILayout.Button ("-"))
 					Target.RemoveAt (i);
 				EditorGUILayout.EndHorizontal ();
 			}
 		}
 		EditorGUILayout.BeginHorizontal ();
-		if (GUILayout.Button ("Add Transition"))
-			Target.AddTransition (new Transition ());
-		if (GUILayout.Button ("Empty Transitions"))
-			Target.Empty ();
+			if (GUILayout.Button ("Add Transition"))
+				Target.AddTransition (new Transition ());
+			if (GUILayout.Button ("Empty Transitions"))
+				Target.Empty ();
 		EditorGUILayout.EndHorizontal ();
-		GUI.skin.label.alignment = TextAnchor.MiddleLeft;
+			GUI.skin.label.alignment = TextAnchor.MiddleLeft;
 		EditorGUILayout.EndVertical ();
 
 		GUILayout.Space (15);
