@@ -4,14 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public enum EGender
-{
-	Male = -1,
-	Female = 1,
-	Other = 0,
-}
-
-[System.Serializable]
 public class Stats 
 {
 	public Stats()

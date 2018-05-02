@@ -3,6 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Animations;
 
+[System.Serializable]
+public enum EGender
+{
+	Male = -1,
+	Female = 1,
+	Other = 0,
+}
+
 public enum ESheath
 {
 	Hips = 1,

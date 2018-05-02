@@ -7,41 +7,46 @@ public class InventoryManager
 {
 	public InventoryManager()
 	{
-		Inventory = new GameObject[Length];
-		InventoryStack = new int[Length];
+		Inventory = new GameObject[0];
+		InventoryStack = new int[0];
+		InventoryStackRow = new List<GameObject>[0];
 	}
 
 	public InventoryManager(int Size)
 	{
-		Inventory = new GameObject[Length];
-		InventoryStack = new int[Length];
+		Inventory = new GameObject[Size];
+		InventoryStack = new int[Size];
+		InventoryStackRow = new List<GameObject>[Size];
 	}
 
 	protected GameObject[] Inventory;
 	protected int[] InventoryStack;
+	protected List<GameObject>[] InventoryStackRow;
 
 	public int Length { 
-		get 
-		{
-			return (Inventory != null) ? Inventory.Length : 0;
-		} 
+		get { return (Inventory != null) ? Inventory.Length : 0; } 
 	}
 
-	public int AddItem(GameObject Item)
+	public int AddItem(GameObject NewItem)
 	{
-		if(Item && Length > 0)
+		if(NewItem && Length > 0)
 		{
+			Item ItemComponent = null;	
 			for (int index = 0; index < Inventory.Length; index++) 
 			{
-				if (Inventory [index] == null) {
-					Inventory [index] = Item;
+				if (Inventory [index] == null) 
+				{
+					Inventory [index] = NewItem;
 					InventoryStack [index] = 1;
 					return index;
 				} 
 				else
 				{
-					if (Inventory [index].Equals (Item)) {
+					ItemComponent = Inventory [index].GetComponent<Item> ();
+					if (ItemComponent.Equal(Inventory[index]))
+					{
 						InventoryStack [index] += 1;
+						InventoryStackRow [index].Add (NewItem);
 					}
 				}
 			}
@@ -50,20 +55,75 @@ public class InventoryManager
 		return -1;
 	}
 
-	void AddItemAt(GameObject Item,int Index)
+	public void AddItemAt(GameObject NewItem,int Index)
 	{
-		if (Item || (Index < 0 && Index > Inventory.Length))
+		if (NewItem == null || (Index < 0 && Index > Inventory.Length))
 			return;
 
-		if (Inventory [Index] == null) {
-			Inventory [Index] = Item;
+		if (Inventory [Index] == null)
+		{
+			Inventory [Index] = NewItem;
 			InventoryStack [Index] = 1;
-		} else {
-			if (Inventory [Index].Equals (Item)) {
+		} 
+		else 
+		{
+			Item Temp = NewItem.GetComponent<Item> ();
+			if (Temp.Equal (Inventory [Index])) 
+			{
 				InventoryStack [Index] += 1;
+				InventoryStackRow [Index].Add (NewItem);
+			} 
+			else 
+			{
+				Inventory [Index] = NewItem;
+				InventoryStack [Index] = 1;
 			}
 		}
+	}
 
+	public GameObject RemoveItem(GameObject Other)
+	{
+		if (Other == null)
+			return null;
+
+		Item Temp = Other.GetComponent<Item> ();
+		for (int i = 0; i < Inventory.Length; i++)
+		{
+			if(Temp.Equal(Inventory[i]))
+			{
+				bool StackEmpty = (InventoryStack [i] <= 0);
+				if (StackEmpty)
+				{
+					GameObject ItemTemp = Inventory [i];
+					Inventory [i] = null;
+					return ItemTemp;
+				} 
+				else
+				{
+					GameObject ItemTemp = InventoryStackRow [i][0];
+					InventoryStackRow [i].RemoveAt (0);
+					return ItemTemp;
+				}
+			}
+		}
+		return null;
+	}
+
+	public GameObject RemoveAt(int Index)
+	{
+		if (Index >= 0 && Index < Inventory.Length) {
+			bool StackEmpty = InventoryStack [Index] >= 0;
+			if (StackEmpty) {
+				GameObject Temp = Inventory [Index];
+				Inventory [Index] = null;
+				return Temp;
+			} else {
+				GameObject ItemTemp = InventoryStackRow [Index][0];
+				InventoryStackRow [Index].RemoveAt (0);
+				return ItemTemp;
+			}
+		}
+		return null;
 	}
 
 	public GameObject GetItemAt(int Index)
@@ -108,9 +168,26 @@ public class InventoryManager
 		}
 	}
 
-	public void Empty()
+	public void Clear()
 	{
 		Inventory = new GameObject[Length];
 		InventoryStack = new int[Length];
+	}
+
+	public void Empty()
+	{
+		Inventory = new GameObject[0];
+		InventoryStack = new int[0];
+	}
+
+	public bool Contains(GameObject Other)
+	{
+		Item Temp = Other.GetComponent<Item> ();
+		for (int i = 0; i < Inventory.Length; i++) 
+		{
+			if (Temp.Equal (Inventory [i]))
+				return true;
+		}
+		return false;
 	}
 }

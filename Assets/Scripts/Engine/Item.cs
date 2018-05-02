@@ -1,41 +1,56 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
-[RequireComponent(typeof(SphereCollider))]
 public class Item : MonoBehaviour 
 {
-	public string DisplayName;
-	public string DisplayDescription;
-
-	protected SphereCollider SphereColliderComponent;
+	public int Id;
+	public string Name;
+	public TextAsset Description;
+	public EWeapon Type;
+	public Sprite Icon;
 
 	void Awake () {
-		SphereColliderComponent = GetComponent<SphereCollider> ();
-		if (!SphereColliderComponent)
-			Debug.LogError ("Item: sphere collider is null");
-		else
-			SphereColliderComponent.isTrigger = true;
+		
 	}
-	
-	// Update is called once per frame
+
 	void Update () {
 		
 	}
 
-	void OnTriggerEnter(Collider Other)
+	public virtual void PickUp()
 	{
-		GameObject OtherObject;
-		OtherObject = Other.gameObject;
-		print (OtherObject.name);
-	
-		if (OtherObject.gameObject.tag == "Player")
+		if(gameObject.activeInHierarchy)
 		{
-			PlayerController ControllerComponent = OtherObject.GetComponent<PlayerController> ();
-			PlayerCharacter PlayerComponent = ControllerComponent.Character.GetComponent<PlayerCharacter> ();
-			print (PlayerComponent.Inventory.Length);
-
-			PlayerComponent.Inventory.AddItem (gameObject);
+			gameObject.SetActive (false);	
 		}
 	}
+
+	public virtual void Drop(Vector3 Offset)
+	{
+		if(!gameObject.activeInHierarchy)
+		{
+			gameObject.SetActive (true);
+		}
+	}
+
+	public virtual bool Equal(Item Other)
+	{
+		if (Other == null)
+			return false;
+
+		bool Success = false;
+		Success = Success || Id == Other.Id;
+		Success = Success || Type == Other.Type;
+		Success = Success || Name == Other.Name;
+		return Success;
+	}
+
+	public virtual bool Equal(GameObject Other)
+	{
+		Item Temp = Other.GetComponent<Item> ();
+		return Equal (Temp);
+	}
+
 }
