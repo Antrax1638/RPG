@@ -3,8 +3,9 @@ guid: 79cb662f273c9614684a8b9febeeb553
 timeCreated: 1498791644
 licenseType: Store
 TrueTypeFontImporter:
+  externalObjects: {}
   serializedVersion: 4
-  fontSize: 16
+  fontSize: 72
   forceTextureCase: -2
   characterSpacing: 0
   characterPadding: 1
@@ -16,6 +17,7 @@ TrueTypeFontImporter:
   customCharacters: 
   fontRenderingMode: 0
   ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 

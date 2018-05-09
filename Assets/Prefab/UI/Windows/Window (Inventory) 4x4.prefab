@@ -79,6 +79,7 @@ MonoBehaviour:
   SlotSize: 0
   Size: {x: 4, y: 4}
   Safe: 1
+  DebugMode: 0
   DebugIcon: {fileID: 21300000, guid: afd17a2800faaa6448bce05c5654ed44, type: 3}
   DebugId: 1
   DebugSize: {x: 2, y: 2}

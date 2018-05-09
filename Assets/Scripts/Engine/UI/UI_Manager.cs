@@ -10,7 +10,8 @@ public enum KeyModifier
 	None,
 	Control,
 	Alt,
-	Shift
+	Shift,
+	Cmd
 }
 
 public enum Visiblility
@@ -21,8 +22,10 @@ public enum Visiblility
 
 public class UI_Manager : MonoBehaviour
 {
-	[HideInInspector]
-	public static UI_Manager Instance {get{return ManagerInstance;}}
+	[HideInInspector] public static UI_Manager Instance {get{return ManagerInstance;}}
+	[HideInInspector] public GameObject Focus;
+
+	[Header("Manager Properties:")]
 	public GameObject PlayerController;
 
 	protected List<GameObject> Windows = new List<GameObject>();
@@ -78,6 +81,9 @@ public class UI_Manager : MonoBehaviour
 			break;
 		case KeyModifier.None: 
 			Success = true;
+			break;
+		case KeyModifier.Cmd:
+			Success = Input.GetKey (KeyCode.LeftCommand) || Input.GetKey (KeyCode.RightCommand);
 			break;
 		}
 		return Success;

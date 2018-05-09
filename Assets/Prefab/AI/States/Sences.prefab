@@ -53,9 +53,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec2c83582b966cc46a09185188cbb4d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Radius: 0
+  Enable: 1
+  AudioMemory: 5
+  SightMemory: 5
   Tags:
   - Player
+  PlayerTag: Player
+  FaceDirection: {x: 0, y: 0, z: 0}
+  State: 0
+  Instinct: 0
 --- !u!114 &114385628177968202
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -67,7 +73,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b61520daf185924799173c77b98fc4c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Transitions: []
+  Transitions:
+  - State: {fileID: 114740740605782292, guid: 5ec0844a855a39540b67ce5fe57ab064, type: 2}
+    Enter: 0
   Name: Sences
   DebugMode: 0
   TransitionPass: 0

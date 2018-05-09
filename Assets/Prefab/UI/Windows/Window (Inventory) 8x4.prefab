@@ -106,10 +106,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e683cd6fd8aa892458c9d25a3d0b9c7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Symetric: 0
   Slot: {fileID: 1474811942633976, guid: 6bfd82674f83778469a9591fa7c23651, type: 2}
   SlotSize: 0
   Size: {x: 8, y: 4}
   Safe: 0
+  DebugMode: 0
+  DebugIcon: {fileID: 0}
+  DebugId: 0
+  DebugSize: {x: 0, y: 0}
+  DebugPos: {x: 0, y: 0}
 --- !u!222 &222264355557948738
 CanvasRenderer:
   m_ObjectHideFlags: 1

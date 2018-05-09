@@ -309,6 +309,11 @@ public class UI_Inventory : MonoBehaviour
 		return Valid;*/
 	}
 
+	public void SwitchItem(UI_Item OldItem, Vector2Int OldPosition,Vector2Int NewPosition)
+	{
+		
+	}
+
 	public void ClearItems()
 	{
 		UI_InventorySlot Slot;

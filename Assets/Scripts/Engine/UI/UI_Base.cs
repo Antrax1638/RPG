@@ -10,6 +10,17 @@ public class UI_Base : MonoBehaviour
 	protected RectTransform[] TransformComponents;
 	protected Text[] TextComponents;
 
+	[HideInInspector] public List<string> EventNames = new List<string> ();
+
+
+	public virtual bool CheckEvent(string name)
+	{
+		if(EventNames != null){
+			return EventNames.Contains (name);
+		}
+		return false;
+	}
+
 	public virtual Image GetImage(int Index)
 	{
 		if (Index >= 0 && Index < ImageComponents.Length)
