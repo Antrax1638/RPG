@@ -8,17 +8,22 @@ using UnityEditor;
 public class UI_Crafting : UI_Window 
 {
 	[Header("Crafting Properties:")]
-
 	[Tooltip("the size of the container of all ui objects list.")]
 	public int Size;
 	[Tooltip("The ui object to create in the container list.")]
 	public GameObject Prefab;
-	public bool Changed;
+	[Tooltip("Adapts the maximum size of the window depending on the content both for x,y axis. [0 = Deactivated]")]
+	public Vector2Int Fill = new Vector2Int (0, 1);
+	[Tooltip("Content rect transform compoent the is must have to work")]
+	public RectTransform Target;
+
+	//HidenVariables:
+	[HideInInspector]public bool Changed;
 
 	private Scrollbar[] ScrollBarComponents;
 	private ScrollRect ScrollRectComponent;
 	private GameObject Content;
-
+	private VerticalLayoutGroup VerticalLayoutComponent;
 	GameObject[] ContentContainer;
 	Expandable ContentBase;
 
@@ -34,6 +39,10 @@ public class UI_Crafting : UI_Window
 		if (!ScrollRectComponent)
 			Debug.LogError ("UI_Crafting: scrollrect component is null");
 
+		VerticalLayoutComponent = GetComponentInChildren<VerticalLayoutGroup> ();
+		if (!VerticalLayoutComponent)
+			Debug.LogError ("UI_Crafting: vertical layout component is null");
+
 		Content = GetChild ("Content").gameObject;
 	}
 
@@ -47,6 +56,7 @@ public class UI_Crafting : UI_Window
 			CurrentTransform.anchoredPosition = Vector2.zero;
 			AddContainerObject (CurrentObject);
 		}
+
 	}
 
 	protected override void Update()
@@ -55,26 +65,21 @@ public class UI_Crafting : UI_Window
 	
 		if(Changed)
 		{
-			//Toggle TransformComponent;
-			Vector2 SizeDelta = Vector2.zero;
-			RectTransform LastTransform,Current;
-			Current = ContentContainer [0].GetComponent<RectTransform> ();
-			LastTransform = Current;
-			for(int i = 1; i < ContentContainer.Length;i++)
-			{
-				Current = ContentContainer [i].GetComponent<RectTransform> ();
-				Vector2 NewPosition = new Vector2 (
-					LastTransform.anchoredPosition.x,
-					-i * LastTransform.sizeDelta.y
-				);
-				SizeDelta.x += Current.sizeDelta.x * System.Convert.ToInt32(i == 1);
-				SizeDelta.y += Current.sizeDelta.y;
-				Current.anchoredPosition = NewPosition;
-				LastTransform = Current;
+			Vector2 TotalDeltaSize = Vector2.zero;
+			RectTransform CurrentTransform;
+			Expandable CurrentExpandable;
+
+			for (int i = 0; i < ContentContainer.Length; i++) {
+				CurrentTransform = ContentContainer [i].GetComponent<RectTransform> ();
+				CurrentExpandable = ContentContainer [i].GetComponent<Expandable> ();
+
+				TotalDeltaSize.x += (CurrentTransform.sizeDelta.x - CurrentExpandable.SizeDelta.x) * Fill.x;
+				TotalDeltaSize.y += (CurrentTransform.sizeDelta.y - CurrentExpandable.SizeDelta.y) * Fill.y;
 			}
+			Target.sizeDelta = TotalDeltaSize;
 
-			Content.GetComponent<RectTransform> ().sizeDelta = SizeDelta;
-
+			VerticalLayoutComponent.SetLayoutVertical ();
+			VerticalLayoutComponent.SetLayoutHorizontal ();
 			Changed = false;
 		}
 	}

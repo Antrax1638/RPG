@@ -73,7 +73,7 @@ public class Sences : MonoBehaviour
 		for (int i = 0; i < Tags.Length; i++) {
 			if (Other.tag == Tags [i]) {
 				ObjectsSenced.Add (Tags [i], Other.gameObject);
-				ObjectsThreat.Add (Tags [i], 0.0f);
+				ObjectsThreat.Add (Other.gameObject.name, 0.0f);
 			}	
 		}
 
@@ -97,12 +97,12 @@ public class Sences : MonoBehaviour
 			{
 				string HitTag = Hit.collider.tag;
 				TargetHit = (HitTag == Other.tag);
-				ObjectsThreat [Other.tag] += ThreatGainRate;
+				ObjectsThreat [Other.name] += ThreatGainRate;
 			}
 		}
 		else
 		{
-			ObjectsThreat [Other.tag] = (!isMoving) ? ObjectsThreat[Other.tag] - ThreatLossRate : ObjectsThreat[Other.tag];
+			ObjectsThreat [Other.name] = (!isMoving) ? ObjectsThreat[Other.tag] - ThreatLossRate : ObjectsThreat[Other.tag];
 
 		}
 		/*if (Physics.Raycast (transform.position, Direction,out Hit,Distance.magnitude)) 
@@ -121,7 +121,7 @@ public class Sences : MonoBehaviour
 	void OnTriggerExit(Collider Other)
 	{
 		ObjectsSenced.Clear ();
-
+		ObjectsThreat.Clear ();
 	}
 
 	void UpdateThreat()
@@ -137,5 +137,7 @@ public class Sences : MonoBehaviour
 	void OnDrawGizmos()
 	{
 		Gizmos.DrawRay (transform.position, Direction);
+		Gizmos.color = Color.red;
+		Gizmos.DrawRay (transform.position, transform.forward);
 	}
 }
