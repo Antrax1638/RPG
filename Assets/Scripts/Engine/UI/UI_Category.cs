@@ -6,24 +6,31 @@ public class UI_Category : Expandable
 {
 	[Header("Category:")]
 	public bool Enable;
+	public BlueprintDatabase Database;
 
+	private Json JsonManager;
 	private UI_Crafting CraftingWindowComponent;
 	private UI_Blueprint[] Blueprints;
+
 
 	protected override void Awake()
 	{
 		base.Awake ();
 
 		if (Enable) {
-			CraftingWindowComponent = GetComponentInParent<UI_Crafting>();
+			CraftingWindowComponent = GetComponentInParent<UI_Crafting> ();
 			if (!CraftingWindowComponent)
 				Debug.LogError ("UI_Crategory: Crafting window component is null");
 		}
+
+		JsonManager.LoadFromFile (Database.name);
+
 	}
 
 	protected override void Start ()
 	{
 		base.Start ();
+	
 		Blueprints = new UI_Blueprint[Components.Count];
 		for (int i = 0; i < Blueprints.Length; i++) {
 			

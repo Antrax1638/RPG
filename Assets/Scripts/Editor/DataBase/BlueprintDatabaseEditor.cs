@@ -3,12 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-[CreateAssetMenu(fileName = "Blueprints",menuName = "Database/Blueprint",order = 3)]
-public class BlueprintDatabase : ScriptableObject 
-{
-	public List<UI_Blueprint> Blueprints = new List<UI_Blueprint>();
-}
-	
 [CustomEditor(typeof(BlueprintDatabase))]
 public class BlueprintDatabaseEditor : Editor
 {
@@ -29,10 +23,13 @@ public class BlueprintDatabaseEditor : Editor
 		if (GUILayout.Button ("->")) Selection++;
 		EditorGUILayout.EndHorizontal ();
 
-		Selection = (Target.Blueprints != null) ? Mathf.Clamp (Selection, 0, Target.Blueprints.Count) : -1;
+		Selection = (Target.Blueprints != null) ? Mathf.Clamp (Selection, 0, Target.Blueprints.Count-1) : -1;
 		if (Target.Blueprints != null && Selection >= 0 && Selection < Target.Blueprints.Count)
 		{
 			Selection = Mathf.Clamp (Selection, 0, Target.Blueprints.Count);
+
+			Target.Blueprints[Selection].Name = EditorGUILayout.TextField ("Name", Target.Blueprints[Selection].Name);
+			Target.Blueprints[Selection].Item = EditorGUILayout.IntField ("Item", Target.Blueprints[Selection].Item);
 			DrawBlueprint (Target.Blueprints [Selection]);
 		}
 
@@ -48,9 +45,6 @@ public class BlueprintDatabaseEditor : Editor
 
 	void DrawBlueprint (UI_Blueprint Temp)
 	{
-		Temp.Name = EditorGUILayout.TextField ("Name", Temp.Name);
-		Temp.Item = EditorGUILayout.IntField ("Item", Temp.Item);
-
 		EditorGUILayout.BeginVertical ("Box");
 
 		EditorGUILayout.BeginHorizontal ();
@@ -80,15 +74,15 @@ public class BlueprintDatabaseEditor : Editor
 		EditorGUILayout.Space ();
 
 		EditorGUILayout.BeginVertical ();
-			EditorGUILayout.BeginHorizontal ();
-			GUILayout.Label ("Key");
-			GUILayout.Space (20); 
-			GUILayout.Label ("Cuantity");
-			EditorGUILayout.EndHorizontal ();
-			EditorGUILayout.BeginHorizontal ();
-			MaterialKey = EditorGUILayout.IntField (MaterialKey);
-			MaterialValue = EditorGUILayout.IntField (MaterialValue);
-			EditorGUILayout.EndHorizontal ();
+		EditorGUILayout.BeginHorizontal ();
+		GUILayout.Label ("Key");
+		GUILayout.Space (20); 
+		GUILayout.Label ("Cuantity");
+		EditorGUILayout.EndHorizontal ();
+		EditorGUILayout.BeginHorizontal ();
+		MaterialKey = EditorGUILayout.IntField (MaterialKey);
+		MaterialValue = EditorGUILayout.IntField (MaterialValue);
+		EditorGUILayout.EndHorizontal ();
 
 		EditorGUILayout.BeginHorizontal ();
 		GUILayout.Space (5);
