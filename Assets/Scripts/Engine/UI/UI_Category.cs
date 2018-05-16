@@ -8,7 +8,7 @@ public class UI_Category : Expandable
 	public bool Enable;
 
 	private UI_Crafting CraftingWindowComponent;
-	private List<UI_Item> ItemComponents = new List<UI_Item>();
+	private UI_Blueprint[] Blueprints;
 
 	protected override void Awake()
 	{
@@ -19,19 +19,21 @@ public class UI_Category : Expandable
 			if (!CraftingWindowComponent)
 				Debug.LogError ("UI_Crategory: Crafting window component is null");
 		}
-
-
 	}
 
 	protected override void Start ()
 	{
 		base.Start ();
+		Blueprints = new UI_Blueprint[Components.Count];
+		for (int i = 0; i < Blueprints.Length; i++) {
+			
+		}
+
 	}
 	
 	public override void OnClick(bool Value)
 	{
 		base.OnClick (Value);
-
 
 		if (CraftingWindowComponent) {
 			CraftingWindowComponent.Changed = true;
