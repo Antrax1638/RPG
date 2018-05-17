@@ -40,4 +40,9 @@ public class UI_Item
 	{
 		return this == (UI_Item)other;
 	}
+
+	public override int GetHashCode()
+	{
+		return base.GetHashCode ();
+	}
 }

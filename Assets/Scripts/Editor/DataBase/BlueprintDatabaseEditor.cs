@@ -19,11 +19,13 @@ public class BlueprintDatabaseEditor : Editor
 	{
 		EditorGUILayout.BeginHorizontal ();
 		if (GUILayout.Button ("<-")) Selection--;
-		GUILayout.Label ("[" + Selection + "]");
+		GUI.skin.label.alignment = TextAnchor.MiddleCenter;
+		GUILayout.Label ("Blueprint [" + Selection + "]");
+		GUI.skin.label.alignment = TextAnchor.MiddleLeft;
 		if (GUILayout.Button ("->")) Selection++;
 		EditorGUILayout.EndHorizontal ();
 
-		Selection = (Target.Blueprints != null) ? Mathf.Clamp (Selection, 0, Target.Blueprints.Count-1) : -1;
+		Selection = (Target.Blueprints != null) ? Mathf.Clamp (Selection, 0, Target.Blueprints.Count-1) : 0;
 		if (Target.Blueprints != null && Selection >= 0 && Selection < Target.Blueprints.Count)
 		{
 			Selection = Mathf.Clamp (Selection, 0, Target.Blueprints.Count);
@@ -50,7 +52,9 @@ public class BlueprintDatabaseEditor : Editor
 		EditorGUILayout.BeginHorizontal ();
 		MTab = EditorGUILayout.Foldout (MTab, "Materials", true);
 		int Length = (Temp.Materials != null) ? Temp.Materials.Count : -1; 
-		GUILayout.Label ("["+Length+"]");
+		GUI.skin.label.alignment = TextAnchor.UpperRight;
+		GUILayout.Label ("Length ["+Length+"]");
+		GUI.skin.label.alignment = TextAnchor.MiddleLeft;
 		EditorGUILayout.EndHorizontal ();
 		GUI.contentColor = Color.green;
 		if (MTab && Temp.Materials != null) 
@@ -73,7 +77,7 @@ public class BlueprintDatabaseEditor : Editor
 
 		EditorGUILayout.Space ();
 
-		EditorGUILayout.BeginVertical ();
+		EditorGUILayout.BeginVertical ("Box");
 		EditorGUILayout.BeginHorizontal ();
 		GUILayout.Label ("Key");
 		GUILayout.Space (20); 

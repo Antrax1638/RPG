@@ -8,10 +8,7 @@ public class UI_Category : Expandable
 	public bool Enable;
 	public BlueprintDatabase Database;
 
-	private Json JsonManager;
 	private UI_Crafting CraftingWindowComponent;
-	private UI_Blueprint[] Blueprints;
-
 
 	protected override void Awake()
 	{
@@ -23,19 +20,12 @@ public class UI_Category : Expandable
 				Debug.LogError ("UI_Crategory: Crafting window component is null");
 		}
 
-		JsonManager.LoadFromFile (Database.name);
-
 	}
 
 	protected override void Start ()
 	{
 		base.Start ();
 	
-		Blueprints = new UI_Blueprint[Components.Count];
-		for (int i = 0; i < Blueprints.Length; i++) {
-			
-		}
-
 	}
 	
 	public override void OnClick(bool Value)

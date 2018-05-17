@@ -5,14 +5,21 @@ using UnityEngine.UI;
 
 public class Item : MonoBehaviour 
 {
+	[Header("Item Properties:")]
 	public int Id;
 	public string Name;
 	public TextAsset Description;
 	public EWeapon Type;
 	public Sprite Icon;
+	public Vector2Int Size;
 
-	void Awake () {
-		
+	[HideInInspector] public UI_Item Interface {get{ return ItemInterface; }}
+
+	private UI_Item ItemInterface;
+
+	void Awake ()
+	{
+		ItemInterface = new UI_Item (Id, Icon, Size);
 	}
 
 	void Update () {
