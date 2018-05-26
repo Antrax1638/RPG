@@ -5,19 +5,28 @@ using UnityEngine.EventSystems;
 
 public class UI_Window : UI_Base, IPointerClickHandler, IDragHandler , IBeginDragHandler, IEndDragHandler {
 	
-	[Header("Window Properties:")]
-	public bool Focusable;
+	[Header("Drag Properties:")]
 	public bool Draggable;
-	public KeyModifier ToggleModifier; 
-	public string ToggleAction;
-	public KeyCode CloseKey = KeyCode.Escape;
+    public KeyModifier DragModifier;
+    public Vector2 DragOffset = Vector2.zero;
+    public RectTransform[] DragFilter;
 
+    [Header("Toggle Properties:")]
+    public bool Toggleable;
+    public KeyModifier ToggleModifier;
+    public string ToggleAction;
+
+    [Header("Focus Properties:")]
+    public bool Focusable;
+
+    public KeyCode CloseKey = KeyCode.Escape;
 	[HideInInspector] public bool Activated { get{return IsActivated;} }
 
 	protected Vector2 InitialPivotPoint = Vector2.zero;
 	protected Vector2 LocalPivotPoint = Vector2.zero;
 	protected RectTransform TransformComponent;
 	protected bool Dragged,IsActivated;
+    private bool CanDrag = true;
 
 
 	protected virtual void Awake ()
@@ -35,11 +44,13 @@ public class UI_Window : UI_Base, IPointerClickHandler, IDragHandler , IBeginDra
 	}
 		
 	protected virtual void Update()
-	{	
-		if (Input.GetButtonDown (ToggleAction) && UI_Manager.Instance.InputKeyModifier(ToggleModifier))
-		{
-			ToggleWindow ();
-		}
+	{
+        if (Toggleable) {
+            if (Input.GetButtonDown(ToggleAction) && UI_Manager.Instance.InputKeyModifier(ToggleModifier))
+            {
+                ToggleWindow();
+            }
+        }
 
 		if (Input.GetKeyDown (CloseKey))
 			CloseWindow ();
@@ -65,41 +76,60 @@ public class UI_Window : UI_Base, IPointerClickHandler, IDragHandler , IBeginDra
 		if (!IsActivated || Visible == Visiblility.Hidden)
 			return;
 		
-		if (Draggable)
+		if (Draggable && UI_Manager.Instance.InputKeyModifier(DragModifier) && CanDrag)
 		{
 			if (!EventNames.Contains ("OnDrag"))
 				EventNames.Add ("OnDrag");
-			TransformComponent.anchoredPosition = Input.mousePosition;
+            Vector2 Position = Input.mousePosition;
+			TransformComponent.anchoredPosition = Position + DragOffset;
 		}
 	}
 		
 	public virtual void OnBeginDrag (PointerEventData eventData)
 	{
-		if (!IsActivated || Visible == Visiblility.Hidden
-		)
+		if (!IsActivated || Visible == Visiblility.Hidden)
 			return;
 
-		if (Focusable) {
+		if (Focusable)
+        {
 			TransformComponent.SetAsLastSibling ();
 			UI_Manager.Instance.Focus = gameObject;
 		}
 
-		if (Draggable) {
+		if (Draggable && UI_Manager.Instance.InputKeyModifier(DragModifier))
+        {
 			if (!EventNames.Contains ("OnBeginDrag"))
 				EventNames.Add ("OnBeginDrag");
 
-			Canvas ParentCanvas = GetComponentInParent<Canvas> ();
-			RectTransformUtility.ScreenPointToLocalPointInRectangle (TransformComponent, eventData.position, ParentCanvas.worldCamera, out LocalPivotPoint);
-			LocalPivotPoint = Rect.PointToNormalized (TransformComponent.rect, LocalPivotPoint);
-			TransformComponent.pivot = LocalPivotPoint;
-			Dragged = true;
+            if(DragFilter != null && DragFilter.Length > 0)
+            {
+                CanDrag = false;
+                for (int i = 0; i < DragFilter.Length; i++)
+                {
+                    if (eventData.hovered.Contains(DragFilter[i].gameObject))
+                    {
+                        CanDrag = true;
+                    }
+                }
+            }
+
+            if (CanDrag)
+            {
+                Canvas ParentCanvas = GetComponentInParent<Canvas>();
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(TransformComponent, eventData.position, ParentCanvas.worldCamera, out LocalPivotPoint);
+                LocalPivotPoint = Rect.PointToNormalized(TransformComponent.rect, LocalPivotPoint);
+                TransformComponent.pivot = LocalPivotPoint;
+                Dragged = true;
+            }
+			
 		}	
 	}
 
 	public virtual void OnEndDrag (PointerEventData eventData)
 	{
 		Dragged = false;
-		if (!EventNames.Contains ("OnEndDrag"))
+        CanDrag = true;
+        if (!EventNames.Contains ("OnEndDrag"))
 			EventNames.Add ("OnEndDrag");
 	}
 		

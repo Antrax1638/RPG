@@ -2,27 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
-public class UI_Inventory : MonoBehaviour
+public class UI_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-	public enum SearchType
-	{
-		OneDimensional,
-		TwoDimensional,
-	}
-
 	public static Vector2Int InvalidIndex = new Vector2Int(-1,-1);
 	public const int Null = 0;
 
-	[Header("Inventory Properties:")]
-	public bool Symetric;
-	public GameObject Slot;
+
+	[Header("General Properties:")]
+    public bool Safe;
+    public GameObject Slot;
 	public bool SlotSize;
 	public Vector2Int Size;
-	public int Length {
-		get { return Size.x * Size.y; }
-	}
-	public bool Safe;
+
+    [Header("Highlight Properties:")]
+    public bool Highlight;
 
 	[Header("Debug Properties:")]
 	public bool DebugMode = false;
@@ -31,68 +26,73 @@ public class UI_Inventory : MonoBehaviour
 	public Vector2Int DebugSize;
 	public Vector2Int DebugPos;
 
+    [HideInInspector] public int Length { get { return Size.x * Size.y; }}
+    [HideInInspector] public UI_InventorySlot HoveredSlot;
 
-	GameObject GridPanel,SlotTemp;
+    GameObject GridPanel,SlotTemp;
 	private RectTransform TransformComponent;
 	private RectTransform GridPanelTransformComponent;
 	private GridLayoutGroup GridPanelComponent;
 	private UnSymmetricalGridLayoutGroup UnSymGridPanelComponent;
+    private bool MouseOver = false;
 
 	protected GameObject[,] GridCells;
-	//protected Dictionary<int,int> GridCellData = new Dictionary<int, int>();
 
 	int Width,Height;
 	UI_Item Temp = new UI_Item();
 
-	void Awake() 
-	{
-		if (transform.childCount > 0) 
-			GridPanel = transform.GetChild (0).gameObject;
-		else
-			Debug.LogError("UI_Inventory: Grid panel is null.");
+    void Awake()
+    {
+        TransformComponent = GetComponent<RectTransform>();
+        if (!TransformComponent)
+            Debug.LogError("UI_Inventory: Transform component is null.");
 
-		TransformComponent = GetComponent<RectTransform> ();
-		if (!TransformComponent)
-			Debug.LogError ("UI_Inventory: Transform component is null.");
 
-		if (Symetric)
-		{
-			GridPanelComponent = GridPanel.GetComponent<GridLayoutGroup> ();
-			if (!GridPanelComponent)
-				Debug.LogError ("UI_Inventory: grid panel component is null.");
+        GridPanelComponent = GetComponentInChildren<GridLayoutGroup>();
+        if (GridPanelComponent)
+        {
+            RectTransform SlotTransform = Slot.GetComponent<RectTransform>();
+            GridPanelComponent.cellSize = (SlotSize) ? SlotTransform.sizeDelta : GridPanelComponent.cellSize;
 
-			RectTransform SlotTransform = Slot.GetComponent<RectTransform> ();
-			GridPanelComponent.cellSize = (SlotSize) ? SlotTransform.sizeDelta : GridPanelComponent.cellSize;
+            GridCells = new GameObject[Size.x, Size.y];
+            Width = (int)GridPanelComponent.cellSize.x * Size.x;
+            Height = (int)GridPanelComponent.cellSize.y * Size.y;
+        }
 
-			GridCells = new GameObject[Size.x, Size.y];
-			Width = (int)GridPanelComponent.cellSize.x * Size.x;
-			Height = (int)GridPanelComponent.cellSize.y * Size.y;
+        UnSymGridPanelComponent = GetComponentInChildren<UnSymmetricalGridLayoutGroup>();
+        if (UnSymGridPanelComponent)
+        { 
+            RectTransform SlotTransform = Slot.GetComponent<RectTransform>();
+            UnSymGridPanelComponent.CellSize = (SlotSize) ? SlotTransform.sizeDelta : UnSymGridPanelComponent.CellSize;
 
-		} 
-		else
-		{
-			UnSymGridPanelComponent = GridPanel.GetComponent<UnSymmetricalGridLayoutGroup> ();
-			if (!UnSymGridPanelComponent)
-				Debug.LogError ("UI_Inventory: grid panel component is null.");
+            GridCells = new GameObject[Size.x, Size.y];
+            Width = (int)UnSymGridPanelComponent.CellSize.x * Size.x;
+            Height = (int)UnSymGridPanelComponent.CellSize.y * Size.y;
 
-			RectTransform SlotTransform = Slot.GetComponent<RectTransform> ();
-			UnSymGridPanelComponent.CellSize = (SlotSize) ? SlotTransform.sizeDelta : UnSymGridPanelComponent.CellSize;
+            UnSymGridPanelComponent.MaxFillWidth = Size.x;
+            UnSymGridPanelComponent.MaxFillHeight = Size.y;
+            UnSymGridPanelComponent.LockCellSize = false;
+        }
 
-			GridCells = new GameObject[Size.x, Size.y];
-			Width = (int)UnSymGridPanelComponent.CellSize.x * Size.x;
-			Height = (int)UnSymGridPanelComponent.CellSize.y * Size.y;
+        if (!GridPanelComponent && !UnSymGridPanelComponent)
+            Debug.LogError("UI_Inventory: Grid panel component is null.");
+        else
+        {
+            GridPanel = (GridPanelComponent) ? GridPanelComponent.gameObject : UnSymGridPanelComponent.gameObject;
+            GridPanelTransformComponent = (RectTransform)GridPanel.transform;
+            if (!GridPanelTransformComponent)
+                Debug.LogError("UI_Inventory: grid panel transform component is null.");
 
-			UnSymGridPanelComponent.MaxFillWidth = Size.x;
-			UnSymGridPanelComponent.MaxFillHeight = Size.y;
-			UnSymGridPanelComponent.LockCellSize = false;
-		}
+            Vector2 DeltaSpace = Vector2.zero;
+            DeltaSpace.x = TransformComponent.rect.width - GridPanelTransformComponent.rect.width;
+            DeltaSpace.y = TransformComponent.rect.height - GridPanelTransformComponent.rect.height;
 
-		GridPanelTransformComponent =  GridPanel.GetComponent<RectTransform> ();
-		if (!GridPanelTransformComponent)
-			Debug.LogError ("UI_Inventory: grid panel transform component is null.");
-
-		TransformComponent.sizeDelta = new Vector2 (Width,Height);
-		GridPanelTransformComponent.sizeDelta = new Vector2 (Width,Height);
+            TransformComponent.sizeDelta = new Vector2(Width + DeltaSpace.x, Height + DeltaSpace.y);
+            if (GridPanelTransformComponent.anchorMin != Vector2.zero && GridPanelTransformComponent.anchorMax != Vector2.one)
+            {
+                GridPanelTransformComponent.sizeDelta = new Vector2 (Width + DeltaSpace.x,Height + DeltaSpace.y);
+            }
+        }
 
 		//Create Grid:
 		UI_InventorySlot SlotComponent;
@@ -103,15 +103,22 @@ public class UI_Inventory : MonoBehaviour
 				GridCells [x, y] = Instantiate (Slot, GridPanel.transform);
 				GridCells [x, y].name = "Slot [" + x + "-" + y + "]";
 				SlotComponent = GridCells [x, y].GetComponent<UI_InventorySlot> ();
-				SlotComponent.Position = new Vector2Int (x, y);
-				SlotComponent.Item = UI_Item.invalid;
+                if (SlotComponent) {
+                    SlotComponent.Position = new Vector2Int(x, y);
+                    SlotComponent.Item = UI_Item.invalid;
+                } else {
+                    Debug.LogError("UI_Inventory: " + GridCells[x, y].name + " Inventory slot component is null.");
+                }
+				
 			}
 		}
 	}
 
 	void Update () 
 	{
-		
+        HighLightUpdate();
+        
+
 		if(Input.GetKeyDown(KeyCode.Alpha1))
 		{
 			Temp = new UI_Item(DebugId,DebugIcon,DebugSize);
@@ -129,7 +136,27 @@ public class UI_Inventory : MonoBehaviour
 		}
 	}
 
-	/*protected int GetSlotData(int InstanceID)
+    protected virtual void HighLightUpdate()
+    {
+        if (Highlight && MouseOver && HoveredSlot != null && UI_Slot.DragObject != null)
+        {
+            
+            UI_Drag DragObject = UI_Slot.DragObject.GetComponent<UI_Drag>();
+            Vector2Int Position = (DragObject) ? DragObject.DragPosition : new Vector2Int(-1,-1);
+
+            if (Position.x >= 0 && Position.y >= 0 && Position.x < GridCells.GetLength(0) && Position.y < GridCells.GetLength(1))
+            {
+                UI_InventorySlot SlotObject = GridCells[Position.x, Position.y].GetComponent<UI_InventorySlot>();
+                if (SlotObject)
+                {
+                    print("H:" + HoveredSlot.name);
+
+                }
+            }
+        }
+    }
+
+    /*protected int GetSlotData(int InstanceID)
 	{
 		List<int> Keys = new List<int> (GridCellData.Keys);
 		for(int i = 0; i < Keys.Count; i++)
@@ -140,7 +167,7 @@ public class UI_Inventory : MonoBehaviour
 		return 0;
 	}*/
 
-	void DebugLog(string info)
+    void DebugLog(string info)
 	{
 		if(DebugMode)
 			Debug.Log (info);
@@ -211,13 +238,33 @@ public class UI_Inventory : MonoBehaviour
 		if (ValidIndex && ValidSlot)
 		{
 			DebugLog ("Item Added: to [" + Position.x + "-" + Position.y + "] Id: [" + NewItem.Id + "]");
-			int MaxIndex = Mathf.Max (HierarchyIndex.ToArray ());
-			Slot = GridCells [Position.x, Position.y].GetComponent<UI_InventorySlot> ();
-			Slot.SetVisibility (Visiblility.Visible);
-			Slot.SetIcon (NewItem.Icon);
-			Slot.SetScale (NewItem.Size);
-			Slot.Item = NewItem;
-			Slot.transform.SetSiblingIndex (MaxIndex);
+
+            Slot = GridCells[Position.x, Position.y].GetComponent<UI_InventorySlot>();
+            Slot.SetVisibility(Visiblility.Visible);
+            Slot.SetIcon(NewItem.Icon);
+            Slot.SetScale(NewItem.Size);
+            Slot.Item = NewItem;
+
+            if (UnSymGridPanelComponent) {
+                DebugLog("Unsym Grid Panel Subsystem");
+                int MaxIndex = Mathf.Max(HierarchyIndex.ToArray());
+                Slot.transform.SetSiblingIndex(MaxIndex);
+            }
+
+            if (GridPanelComponent)
+            {
+                UI_InventorySlot DeactivatedSlot;
+                DebugLog("Grid Panel Subsystem");
+                for(int i = 0; i < DeactivatedSlots.Count; i++)
+                {
+                    DeactivatedSlot = DeactivatedSlots[i].GetComponent<UI_InventorySlot>();
+                    if (DeactivatedSlot && DeactivatedSlot.Position != Position)
+                    {
+                        DeactivatedSlot.RaycastMode = UI_Slot.RaycastFilter.Inactive;
+                    }
+                }
+            }
+			
 			Index = Position;
 		}
 		else 
@@ -236,7 +283,6 @@ public class UI_Inventory : MonoBehaviour
 			}
 			DeactivatedSlots.Clear ();
 		}
-
 		return Index;
 	}
 
@@ -271,7 +317,8 @@ public class UI_Inventory : MonoBehaviour
 					Slot.SetScale (new Vector2Int (1, 1));
 					Slot.Item = UI_Item.invalid;
 					Slot.SetVisibility (Visiblility.Visible);
-					Success &= true;
+                    Slot.RaycastMode = UI_Slot.RaycastFilter.Active;
+                    Success &= true;
 				} 
 			}
 		}
@@ -309,9 +356,17 @@ public class UI_Inventory : MonoBehaviour
 		return Valid;*/
 	}
 
-	public void SwitchItem(UI_Item OldItem, Vector2Int OldPosition,Vector2Int NewPosition)
+	public void SwitchItem(Vector2Int OldPosition,Vector2Int NewPosition)
 	{
-		
+        UI_InventorySlot OldSlot, NewSlot;
+        OldSlot = GridCells[OldPosition.x, OldPosition.y].GetComponent<UI_InventorySlot>();
+        NewSlot = GridCells[NewPosition.x, NewPosition.y].GetComponent<UI_InventorySlot>();
+
+        if (Safe && OldSlot && NewSlot)
+        {
+            print(OldSlot.name);
+            print(NewSlot.name);
+        }
 	}
 
 	public void ClearItems()
@@ -332,4 +387,13 @@ public class UI_Inventory : MonoBehaviour
 		}
 	}
 
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        MouseOver = true;
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        MouseOver = false;
+    }
 }

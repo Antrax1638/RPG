@@ -5,16 +5,24 @@ using UnityEngine.UI;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
-public class UI_Slot : UI_Base, IPointerEnterHandler, IPointerExitHandler, IDragHandler, IBeginDragHandler, IEndDragHandler
+public class UI_Slot : UI_Base, IPointerEnterHandler, IPointerExitHandler, IDragHandler, IBeginDragHandler, IEndDragHandler, ICanvasRaycastFilter
 {
-	[HideInInspector]
+    public enum RaycastFilter
+    {
+        Active,
+        Inactive
+    }
+
+    [HideInInspector]
 	public bool IsOver{get{ return MouseOver; }}
+    public static GameObject DragObject { get { return DragComponent; } }
 
 	[Header("Slot Properties:")]
 	public Color OverColor = Color.white;
 	public bool AdjustSize;
 	[SerializeField] private string SlotTag = "Slot";
 	public Vector2Int Position;
+    public RaycastFilter RaycastMode = RaycastFilter.Active;
 
 	[Header("Overlay Properties:")]
 	public bool Overlay = false;
@@ -87,13 +95,14 @@ public class UI_Slot : UI_Base, IPointerEnterHandler, IPointerExitHandler, IDrag
 
 			if (Input.GetMouseButtonDown (0))
 				LeftClick.Invoke (this);
-			if (Input.GetMouseButtonDown (1))
+
+            if (Input.GetMouseButtonDown (1))
 				RightClick.Invoke (this);
 		}
 
 		DragKey = UI_Manager.Instance.InputKeyModifier (DragKeyModifier);
 	}
-		
+
 	public Sprite GetIcon()
 	{
 		bool Valid;
@@ -223,6 +232,7 @@ public class UI_Slot : UI_Base, IPointerEnterHandler, IPointerExitHandler, IDrag
 			UI_Drag Temp = DragComponent.GetComponent<UI_Drag> ();
 			Temp.name = name;
 			Temp.DragIcon = GetIcon ();
+            Temp.DragPosition = Position; 
 			Temp.OnBeginDrag ();
 		}
 	}
@@ -250,6 +260,7 @@ public class UI_Slot : UI_Base, IPointerEnterHandler, IPointerExitHandler, IDrag
 			UI_Drag Temp = DragComponent.GetComponent<UI_Drag> ();
 			GetImage("Icon").color = Temp.DropColor;
 			Temp.OnEndDrag ();
+            DragComponent = null;
 		}
 
 		if (HoverObject && HoverObject.layer == LayerMask.NameToLayer("UI"))
@@ -296,10 +307,17 @@ public class UI_Slot : UI_Base, IPointerEnterHandler, IPointerExitHandler, IDrag
 
 	public virtual void OnDrop(GameObject Slot)
 	{
-		/*UI_Slot SlotComponent = Slot.GetComponent<UI_Slot> ();
-		if (SlotComponent) {
-			SlotComponent.SetIcon (GetIcon());
-		}*/
-
+		
 	}
+
+    public virtual bool IsRaycastLocationValid(Vector2 ScreenPoint, Camera EventCamera)
+    {
+        bool Success = false;
+        switch (RaycastMode)
+        {
+            case RaycastFilter.Active: Success = true; break;
+            case RaycastFilter.Inactive: Success = false;  break;
+        }
+        return Success;
+    }
 }

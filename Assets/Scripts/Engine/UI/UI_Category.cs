@@ -6,7 +6,7 @@ public class UI_Category : Expandable
 {
 	[Header("Category:")]
 	public bool Enable;
-	public BlueprintDatabase Database;
+	public DB_Blueprint Database;
 
 	private UI_Crafting CraftingWindowComponent;
 

@@ -13,7 +13,8 @@ public class UI_InventorySlot : UI_Slot
 		RemoveOnDrop
 	}
 
-	[Header("Inventory Properties:")]
+    [Header("Inventory Slot Properties:")]
+    public bool Inventory;
 	public UI_Item Item;
 	public bool RemoveEvent = false;
 	public RemoveType Remove = UI_InventorySlot.RemoveType.RemoveOnDrop;
@@ -25,9 +26,12 @@ public class UI_InventorySlot : UI_Slot
 	{
 		base.Awake ();
 
-		ParentInventory = GetComponentInParent<UI_Inventory> ();
-		if (!ParentInventory)
-			Debug.LogError ("UI_InventorySlot: inventory class component is null");
+        if (Inventory) {
+            ParentInventory = GetComponentInParent<UI_Inventory>();
+            if (!ParentInventory)
+                Debug.LogError("UI_InventorySlot: inventory class component is null");
+        }
+		
 	}
 
 	protected override void Start()
@@ -44,10 +48,13 @@ public class UI_InventorySlot : UI_Slot
 	public override void OnBeginDrag(PointerEventData Data)
 	{
 		base.OnBeginDrag (Data);
-		if (Remove == RemoveType.RemoveOnDrag) {
-			TempDrag = Item;
-			ParentInventory.RemoveItem (Position);
-		}
+
+        if (Inventory && Remove == RemoveType.RemoveOnDrag)
+        {
+            TempDrag = Item;
+            ParentInventory.RemoveItem(Position);
+        }
+		
 	}
 
 	public override void OnDrag(PointerEventData Data)
@@ -62,12 +69,17 @@ public class UI_InventorySlot : UI_Slot
 
 	public override void OnPointerEnter(PointerEventData Data)
 	{
-		base.OnPointerEnter (Data);
+        ToolTip = (Item != UI_Item.invalid);
+        if (Inventory && ParentInventory)
+            ParentInventory.HoveredSlot = this;
+        base.OnPointerEnter (Data);
 	}
 
 	public override void OnPointerExit(PointerEventData Data)
 	{
-		base.OnPointerExit (Data);
+        if (Inventory && ParentInventory)
+            ParentInventory.HoveredSlot = null;
+        base.OnPointerExit (Data);
 	}
 
 	public override void OnDrop (GameObject Slot)
@@ -78,7 +90,7 @@ public class UI_InventorySlot : UI_Slot
 			return;
 
 		UI_InventorySlot SlotComponent = Slot.GetComponent<UI_InventorySlot> ();
-		if (SlotComponent) 
+		if (Inventory && SlotComponent) 
 		{
 			UI_Item Item = (this.Item != UI_Item.invalid) ? this.Item : TempDrag;
 			Vector2Int NewPosition = ParentInventory.AddItem (Item,SlotComponent.Position);

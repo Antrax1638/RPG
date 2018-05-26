@@ -2,18 +2,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(Image))]
-public class UI_Drag : MonoBehaviour
+public class UI_Drag : MonoBehaviour, ICanvasRaycastFilter
 {
-	[Header("Drag Properties")]
+    [Header("Drag Properties")]
+    public bool DragIgnore = true;
 	public Color DragColor = Color.white;
 	public Color DropColor = Color.white;
 	public Vector2 DragOffset = Vector2.zero;
-	public Sprite DragIcon;
-	public bool IsDrag { get{ return MouseDrag; } }
 
-	private bool MouseDrag;
+
+    [Header("Content Properties:")]
+    public Sprite DragIcon;
+    public Vector2Int DragPosition;
+
+    public bool IsDrag { get { return MouseDrag; } }
+
+    private bool MouseDrag;
 	private Image ImageComponent;
 	private RectTransform TransformComponent;
 	private Color DefaultColor;
@@ -54,4 +61,12 @@ public class UI_Drag : MonoBehaviour
 		MouseDrag = false;
 		Destroy (gameObject);
 	}
+
+    public bool IsRaycastLocationValid(Vector2 sp, Camera eventCamera)
+    {
+        if (DragIgnore)
+            return false;
+        else
+            return true;
+    }
 }
