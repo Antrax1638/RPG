@@ -89,7 +89,10 @@ public class UI_Slot : UI_Base, IPointerEnterHandler, IPointerExitHandler, IDrag
 
 	protected virtual void Update () 
 	{
-		if (MouseOver) 
+        if (this == null)
+            return;
+
+        if (MouseOver) 
 		{
 			OnMouseOver ();
 
@@ -99,7 +102,7 @@ public class UI_Slot : UI_Base, IPointerEnterHandler, IPointerExitHandler, IDrag
             if (Input.GetMouseButtonDown (1))
 				RightClick.Invoke (this);
 		}
-
+        
 		DragKey = UI_Manager.Instance.InputKeyModifier (DragKeyModifier);
 	}
 

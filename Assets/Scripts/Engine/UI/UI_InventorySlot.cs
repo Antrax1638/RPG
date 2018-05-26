@@ -15,12 +15,12 @@ public class UI_InventorySlot : UI_Slot
 
     [Header("Inventory Slot Properties:")]
     public bool Inventory;
-	public UI_Item Item;
+	public UI_Item Item = UI_Item.invalid;
 	public bool RemoveEvent = false;
 	public RemoveType Remove = UI_InventorySlot.RemoveType.RemoveOnDrop;
 
 	private UI_Inventory ParentInventory;
-	private UI_Item TempDrag;
+	private UI_Item TempDrag = UI_Item.invalid;
 
 	protected override void Awake()
 	{
@@ -72,6 +72,7 @@ public class UI_InventorySlot : UI_Slot
         ToolTip = (Item != UI_Item.invalid);
         if (Inventory && ParentInventory)
             ParentInventory.HoveredSlot = this;
+
         base.OnPointerEnter (Data);
 	}
 
@@ -84,8 +85,6 @@ public class UI_InventorySlot : UI_Slot
 
 	public override void OnDrop (GameObject Slot)
 	{
-		base.OnDrop (Slot);
-
 		if (Visible == Visiblility.Hidden)
 			return;
 

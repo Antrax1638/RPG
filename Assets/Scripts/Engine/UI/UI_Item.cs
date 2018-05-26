@@ -6,7 +6,7 @@ using UnityEngine.UI;
 [System.Serializable]
 public class UI_Item
 {
-	public static UI_Item invalid = new UI_Item (int.MinValue, null, new Vector2Int (-1, -1));
+	public static UI_Item invalid = new UI_Item(int.MinValue,null,new Vector2Int(-1,-1));
 
 	public int Id;
 	public Sprite Icon;
@@ -28,17 +28,17 @@ public class UI_Item
 
 	public static bool operator==(UI_Item x,UI_Item y)
 	{
-		return (x.Id == y.Id) && (x.Size == y.Size) && (x.Icon == y.Icon);
+        return (x.Id == y.Id) && (x.Size == y.Size) && (x.Icon == y.Icon);
 	}
 
 	public static bool operator!=(UI_Item x,UI_Item y)
 	{
-		return (x.Id != y.Id) && (x.Size != y.Size) && (x.Icon != y.Icon);
-	}
+        return (x.Id != y.Id) && (x.Size != y.Size) && (x.Icon != y.Icon);
+    }
 
 	public override bool Equals(object other)
 	{
-		return this == (UI_Item)other;
+        return this == (UI_Item)other;
 	}
 
 	public override int GetHashCode()
