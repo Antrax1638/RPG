@@ -3,25 +3,27 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class InventoryManager
+public class InventoryManager : IDebugMode
 {
 	public InventoryManager()
 	{
-		Inventory = new GameObject[0];
+        DebugMode = false;
+        Inventory = new GameObject[0];
 		InventoryStack = new int[0];
-		InventoryStackRow = new List<GameObject>[0];
-	}
+        DebugLog("Inventory Initialized Null", 0);
+        
+    }
 
-	public InventoryManager(int Size)
+	public InventoryManager(int Size,bool Debug = false)
 	{
-		Inventory = new GameObject[Size];
-		InventoryStack = new int[Size];
-		InventoryStackRow = new List<GameObject>[Size];
-	}
+        DebugMode = Debug;
+        Inventory = new GameObject[Size];
+        InventoryStack = new int[Size];
+        DebugLog("Inventory Initialized ["+Size+"]", 0);
+    }
 
 	protected GameObject[] Inventory;
 	protected int[] InventoryStack;
-	protected List<GameObject>[] InventoryStackRow;
 
 	public int Length { 
 		get { return (Inventory != null) ? Inventory.Length : 0; } 
@@ -36,55 +38,68 @@ public class InventoryManager
 			{
 				if (Inventory [index] == null) 
 				{
-					Inventory [index] = NewItem;
+                    Inventory [index] = NewItem;
 					InventoryStack [index] = 1;
-					return index;
+                    DebugLog("New Item Added at ["+index+"]", 0);
+                    return index;
 				} 
 				else
 				{
 					ItemComponent = Inventory [index].GetComponent<Item> ();
 					if (ItemComponent.Equal(Inventory[index]))
 					{
-						InventoryStack [index] += 1;
-						InventoryStackRow [index].Add (NewItem);
-					}
+                        InventoryStack[index] += 1;
+                        DebugLog("Item Stacked at [" + index + "]", 0);
+                    }
 				}
 			}
-			return -1;
+            DebugLog("Inventory is full", DebugType.Info);
+            return -1;
 		}
-		return -1;
+        DebugLog("Inventory is null", DebugType.Error);
+        return -1;
 	}
 
 	public void AddItemAt(GameObject NewItem,int Index)
 	{
 		if (NewItem == null || (Index < 0 && Index > Inventory.Length))
-			return;
+        {
+            DebugLog("Invalid Inventory Index", DebugType.Error);
+            DebugLog("Item: "+ NewItem, DebugType.Error);
+        }
 
 		if (Inventory [Index] == null)
 		{
 			Inventory [Index] = NewItem;
 			InventoryStack [Index] = 1;
-		} 
+            DebugLog("New Item Added To ["+Index+"]", 0);
+        } 
 		else 
 		{
 			Item Temp = NewItem.GetComponent<Item> ();
 			if (Temp.Equal (Inventory [Index])) 
 			{
 				InventoryStack [Index] += 1;
-				InventoryStackRow [Index].Add (NewItem);
-			} 
+                DebugLog("Item Stacked To [" + Index + "]", 0);
+            } 
 			else 
 			{
 				Inventory [Index] = NewItem;
 				InventoryStack [Index] = 1;
-			}
+                DebugLog("New Item Added To [" + Index + "]", 0);
+                DebugLog("Old Item Lost", 0);
+            }
 		}
 	}
 
 	public GameObject RemoveItem(GameObject Other)
 	{
 		if (Other == null)
-			return null;
+        {
+            DebugLog("Invalid Item to Remove", 0);
+            return null;
+        }
+			
 
 		Item Temp = Other.GetComponent<Item> ();
 		for (int i = 0; i < Inventory.Length; i++)
@@ -96,50 +111,61 @@ public class InventoryManager
 				{
 					GameObject ItemTemp = Inventory [i];
 					Inventory [i] = null;
-					return ItemTemp;
-				} 
+                    DebugLog("Item Removed from [" + i + "]", 0);
+                    return ItemTemp;
+                } 
 				else
 				{
-					GameObject ItemTemp = InventoryStackRow [i][0];
-					InventoryStackRow [i].RemoveAt (0);
-					return ItemTemp;
+                    DebugLog("Item Copied from [" + i + "]", 0);
+                    return Inventory[i];
 				}
 			}
 		}
-		return null;
+
+        DebugLog("Item not found", 0);
+        return null;
 	}
 
 	public GameObject RemoveAt(int Index)
 	{
-		if (Index >= 0 && Index < Inventory.Length) {
+		if (Index >= 0 && Index < Inventory.Length)
+        {
 			bool StackEmpty = InventoryStack [Index] >= 0;
 			if (StackEmpty) {
 				GameObject Temp = Inventory [Index];
 				Inventory [Index] = null;
-				return Temp;
-			} else {
-				GameObject ItemTemp = InventoryStackRow [Index][0];
-				InventoryStackRow [Index].RemoveAt (0);
-				return ItemTemp;
+                DebugLog("Item Removed from [" + Index + "]", 0);
+                return Temp;
+			}
+            else
+            {
+                DebugLog("Item Copied from [" + Index + "]", 0);
+                return Inventory[Index];
 			}
 		}
-		return null;
+
+        DebugLog("Inventory Index Invalid", DebugType.Error);
+        return null;
 	}
 
 	public GameObject GetItemAt(int Index)
 	{
 		if (Index >= 0 && Index < Inventory.Length) {
-			return Inventory [Index];
+            DebugLog("Item Get from [" + Index + "]", 0);
+            return Inventory [Index];
 		}
-		return null;
+        DebugLog("Inventory Index Invalid", DebugType.Error);
+        return null;
 	}
 
 	public int GetStackAt(int Index)
 	{
 		if (Index >= 0 && Index < InventoryStack.Length) {
-			return InventoryStack [Index];
+            DebugLog("Stack Get from [" + Index + "]", 0);
+            return InventoryStack [Index];
 		}
-		return -1;
+        DebugLog("Inventory Index Invalid", DebugType.Error);
+        return -1;
 	}
 
 	public void Resize(int NewSize)
@@ -157,8 +183,9 @@ public class InventoryManager
 
 			Inventory = new GameObject[NewSize];
 			InventoryStack = new int[NewSize];
+            DebugLog("Iventory Resize from ["+Temp.Length+" To "+NewSize+"]", 0);
 
-			for (int i = 0; i < Inventory.Length; i++) {
+            for (int i = 0; i < Inventory.Length; i++) {
 				Inventory [i] = Temp [i];
 				InventoryStack [i] = TempStack [i];
 			}
@@ -172,13 +199,15 @@ public class InventoryManager
 	{
 		Inventory = new GameObject[Length];
 		InventoryStack = new int[Length];
-	}
+        DebugLog("Ivnetory Cleared", 0);
+    }
 
 	public void Empty()
 	{
 		Inventory = new GameObject[0];
 		InventoryStack = new int[0];
-	}
+        DebugLog("Inventory Empty", 0);
+    }
 
 	public bool Contains(GameObject Other)
 	{
@@ -190,4 +219,5 @@ public class InventoryManager
 		}
 		return false;
 	}
+
 }

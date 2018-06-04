@@ -1,7 +1,5 @@
 fileFormatVersion: 2
 guid: 1d6b0bec2352ae6489c605bb06e9b5ea
-timeCreated: 1496049133
-licenseType: Store
 ModelImporter:
   serializedVersion: 22
   fileIDToRecycleName:
@@ -240,6 +238,7 @@ ModelImporter:
     11100000: //RootNode
     13700000: Soldier_Mesh
     13700002: RPG-Character-Mesh
+    2186277476908879412: ImportLogs
   externalObjects: {}
   materials:
     importMaterials: 0
@@ -273,6 +272,7 @@ ModelImporter:
       error 131.7 mm at time 0:10 (34.5%) Frame 10\n"
     animationDoRetargetingWarnings: 1
     importAnimatedCustomProperties: 0
+    importConstraints: 0
     animationCompression: 3
     animationRotationError: 0.5
     animationPositionError: 0.5

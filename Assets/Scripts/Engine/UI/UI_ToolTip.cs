@@ -2,18 +2,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class UI_ToolTip : UI_Base 
 {
-	[Header("ToolTip Properties:")]
-	public string Title;
+	[Header("General Properties:")]
 	public bool Fade = true;
 	public float FadeSmooth = 0.01f;
 	[Range(0.0f,1.0f)] public float FadeMin = 0.0f;
 	[Range(0.0f,1.0f)] public float FadeMax = 1.0f;
 
-	private float FadeRatio;
+    [Header("Title Properties:")]
+    public Text Title;
+    public string TitleText;
+
+    private float FadeRatio;
 	private RectTransform TransformComponent;
+    private CanvasGroup CanvasGroupComponent;
 
 	void Awake () 
 	{
@@ -35,51 +40,41 @@ public class UI_ToolTip : UI_Base
 
 		if (Fade) 
 		{
-			Color OldColor;
-			for (int i = 0; i < ImageComponents.Length; i++) 
-			{
-				OldColor = ImageComponents [i].color;
-				OldColor.a = 0.0f;
-				ImageComponents [i].color = OldColor;
-			}
+            CanvasGroupComponent = GetComponent<CanvasGroup>();
+            if (!CanvasGroupComponent)
+            {
+                Debug.LogWarning("UI_ToolTip: Canvas group component is null");
+                Debug.LogWarning("UI_ToolTip: Adding component...");
 
-			for (int i = 0; i < TextComponents.Length; i++)
-			{
-				OldColor = TextComponents [i].color;
-				OldColor.a = 0.0f;
-				TextComponents [i].color = OldColor;
-			}
-		}
+                CanvasGroupComponent = gameObject.AddComponent<CanvasGroup>();
+            }
+        }
 	}
 
 	void Start()
 	{
-		GetText ("Title").text = Title;
-	}
+        TitleUpdate();
+        if (Fade && CanvasGroupComponent)
+            CanvasGroupComponent.alpha = 0.0f;
+    }
 
 	void Update () 
 	{
-		if (Fade) 
-		{
-			Color OldColor;
-			for (int i = 0; i < ImageComponents.Length; i++)
-			{
-				OldColor = ImageComponents [i].color;
-				FadeRatio = Mathf.Lerp (FadeRatio, 1.0f, FadeSmooth);
-				FadeRatio = Mathf.Clamp (FadeRatio, FadeMin, FadeMax);
-				ImageComponents [i].color = new Color (OldColor.r,OldColor.g,OldColor.b, FadeRatio );
-			}
+        if (Fade && FadeRatio < 0.99 && CanvasGroupComponent)
+        {
+            FadeRatio = Mathf.Clamp(FadeRatio, FadeMin, FadeMax);
+            FadeRatio = Mathf.Lerp(FadeRatio, 1.0f, FadeSmooth);
 
-			for (int i = 0; i < TextComponents.Length; i++)
-			{
-				OldColor = TextComponents [i].color;
-				FadeRatio = Mathf.Lerp (FadeRatio, 1.0f, FadeSmooth);
-				FadeRatio = Mathf.Clamp (FadeRatio, FadeMin, FadeMax);
-				TextComponents [i].color = new Color (OldColor.r,OldColor.g,OldColor.b, FadeRatio );
-			}
-		}
-	}
+            CanvasGroupComponent.alpha = FadeRatio;
+        }
+    }
 
-
+    void TitleUpdate()
+    {
+        if (Title)
+        {
+            Title.text = TitleText;
+        }
+    }
 
 }

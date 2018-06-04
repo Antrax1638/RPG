@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class UI_Base : MonoBehaviour
 {
@@ -11,7 +12,6 @@ public class UI_Base : MonoBehaviour
 	protected Text[] TextComponents;
 
 	[HideInInspector] public List<string> EventNames = new List<string> ();
-
 
 	public virtual bool CheckEvent(string name)
 	{

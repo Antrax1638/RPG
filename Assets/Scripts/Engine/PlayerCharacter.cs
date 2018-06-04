@@ -4,57 +4,83 @@ using UnityEngine;
 
 public class PlayerCharacter : Character
 {
-	public int InventorySize = 10;
-	public float DetectionRadius = 2.5f;
+    [Header("HUD")]
+    public UI_Hud Hud; 
+
+    [Header("Inventory:")] 
+    public InventoryManager Inventory;
+    public int InventorySize;
+
+    [Header("Items:")]
+    public float DetectionRadius = 2.5f;
 	public float DetectionLength = 1.0f;
 	public LayerMask DetectionMask;
-
 
 	[Header("Actions")]
 	public string PickUpAction = "PickUpAll";
 
-	[HideInInspector()]
-	public InventoryManager Inventory;
+	
 
 	private Transform[] ObjectTransform;
 
 	void Awake ()
 	{
-		Inventory = new InventoryManager (InventorySize);
-		print(Inventory.Length);
+		Inventory = new InventoryManager (InventorySize, Inventory.DebugMode);
 	}
 
 	void Update () 
 	{
-		ItemCheck ();
-		ItemUpdate ();
+        PickUpAll();
+
+        if (Hud)
+        {
+            if(Hud.ActionBar)
+            {
+                Hud.ActionBar.Health = Stat.Health;
+                Hud.ActionBar.MaxHealth = Stat.MaxHealth;
+
+
+            }
+        }
 	}
 
-	void ItemCheck()
-	{
-		RaycastHit[] ItemHits;
-		ItemHits = Physics.CapsuleCastAll (transform.position, transform.position, DetectionRadius, Vector3.down, DetectionLength,DetectionMask);
-		if(ItemHits != null)
-		{
-			ObjectTransform = new Transform[ItemHits.Length];
-			for (int i = 0; i < ItemHits.Length; i++) {
-				ObjectTransform[i] = ItemHits [i].collider.transform;
-			}
-		}
-	}
 
-	void ItemUpdate()
-	{
-		//PickUp:
-		if (ObjectTransform != null && Input.GetButtonDown(PickUpAction)) 
-		{
-			for (int i = 0; i < ObjectTransform.Length; i++)
-			{
-				ObjectTransform[i].GetComponent<Item>().PickUp();
-				Inventory.AddItem (ObjectTransform [i].gameObject);
-			}
-		}
-	}
+
+    void PickUpAll()
+    {
+        if (Input.GetButtonDown(PickUpAction))
+        {
+            RaycastHit[] ItemHits;
+            ItemHits = Physics.CapsuleCastAll(transform.position, transform.position, DetectionRadius, Vector3.down, DetectionLength, DetectionMask);
+            if (ItemHits != null)
+            {
+                ObjectTransform = new Transform[ItemHits.Length];
+                for (int i = 0; i < ItemHits.Length; i++)
+                {
+                    ObjectTransform[i] = ItemHits[i].collider.transform.parent;
+                    if (!ObjectTransform[i])
+                        ObjectTransform[i] = ItemHits[i].collider.transform;
+                }
+            }
+
+            //PickUp:
+            if (ObjectTransform != null && ObjectTransform.Length > 0)
+            {
+                
+                Item ThisItem = null;
+                for (int i = 0; i < ObjectTransform.Length; i++)
+                {
+                    ThisItem = ObjectTransform[i].GetComponent<Item>();
+                    if (ThisItem)
+                    {
+                        ThisItem.PickUp();
+                        Inventory.AddItem(ObjectTransform[i].gameObject);
+                    }
+                    print(ObjectTransform[i].name);
+                }
+            }
+        }
+    }
 
 	void OnDrawGizmos()
 	{
