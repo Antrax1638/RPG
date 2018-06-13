@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class PlayerCharacter : Character
 {
+    public PlayerController Controller;
+
     [Header("HUD")]
     public UI_Hud Hud; 
 
@@ -23,6 +25,7 @@ public class PlayerCharacter : Character
 
 	private Transform[] ObjectTransform;
 
+
 	void Awake ()
 	{
 		Inventory = new InventoryManager (InventorySize, Inventory.DebugMode);
@@ -38,13 +41,35 @@ public class PlayerCharacter : Character
             {
                 Hud.ActionBar.Health = Stat.Health;
                 Hud.ActionBar.MaxHealth = Stat.MaxHealth;
-
-
             }
+
         }
 	}
 
+    void PickUp()
+    {
+        RaycastHit[] ItemHits;
+        ItemHits = Physics.CapsuleCastAll(transform.position, transform.position, DetectionRadius, Vector3.down, DetectionLength, DetectionMask);
+        if (ItemHits != null)
+        {
+            ObjectTransform = new Transform[ItemHits.Length];
+            for (int i = 0; i < ItemHits.Length; i++)
+            {
+                ObjectTransform[i] = ItemHits[i].collider.transform.parent;
+                if (!ObjectTransform[i])
+                    ObjectTransform[i] = ItemHits[i].collider.transform;
+            }
+        }
 
+        Item ThisItem = null;
+        for (int i = 0; i < ObjectTransform.Length; i++)
+        {
+            ThisItem = ObjectTransform[i].GetComponent<Item>();
+            if (ThisItem && ThisItem.State > 0) {
+                
+            }
+        }
+    }
 
     void PickUpAll()
     {
@@ -66,13 +91,13 @@ public class PlayerCharacter : Character
             //PickUp:
             if (ObjectTransform != null && ObjectTransform.Length > 0)
             {
-                
                 Item ThisItem = null;
                 for (int i = 0; i < ObjectTransform.Length; i++)
                 {
                     ThisItem = ObjectTransform[i].GetComponent<Item>();
                     if (ThisItem)
                     {
+                        
                         ThisItem.PickUp();
                         Inventory.AddItem(ObjectTransform[i].gameObject);
                     }

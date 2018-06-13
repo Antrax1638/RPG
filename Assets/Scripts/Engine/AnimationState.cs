@@ -299,22 +299,22 @@ public class AnimationState : MonoBehaviour
 
 	public void SheathWeapon(EWeapon To,int LeftRight,bool Dual = false)
 	{
-		//Envainar arma
-		ControllerComponent.EnableInput = false;
+        //Envainar arma
+        ControllerComponent.InputMode = InputMode.None;
 		AnimatorComponent.SetTrigger ("WeaponSheathTrigger");
 		SheathWeaponSwitch (WeaponState, To, LeftRight, Dual, true);
-		ControllerComponent.EnableInput = true;
+		ControllerComponent.InputMode = InputMode.Game;
 		State = 0;
 	}
 
 	public void UnSheathWeapon(EWeapon Type,int LeftRight,bool Dual = false)
 	{
-		//Desenvainar arma
-		ControllerComponent.EnableInput = false;
-		AnimatorComponent.SetTrigger ("WeaponUnsheathTrigger");
+        //Desenvainar arma
+        ControllerComponent.InputMode = InputMode.None;
+        AnimatorComponent.SetTrigger ("WeaponUnsheathTrigger");
 		SheathWeaponSwitch (EWeapon.Relax, Type, LeftRight, Dual,true);
-		ControllerComponent.EnableInput = true;
-		State = 1;
+        ControllerComponent.InputMode = InputMode.Game;
+        State = 1;
  	}
 
 	void AttackValues(int Weapon,int AttackSide,int LeftWeapon,int RightWeapon)

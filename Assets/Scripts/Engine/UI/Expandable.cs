@@ -54,8 +54,6 @@ public class Expandable : UI_Base, IPointerEnterHandler, IPointerExitHandler
 		if (ImageComponents == null)
 			Debug.LogError ("Expandable: Image components in child are null");
 
-		EventNames = new List<string> ();
-
 		if (Target && TransformComponent)
 			InitialDeltaSize = Target.sizeDelta + TransformComponent.sizeDelta;
 
@@ -98,8 +96,7 @@ public class Expandable : UI_Base, IPointerEnterHandler, IPointerExitHandler
 		{
 			RectTransform CTransform; 
 			Vector2 TotalSize = TransformComponent.sizeDelta;
-			if (!EventNames.Contains ("OnExpand"))
-				EventNames.Add ("OnExpand");
+			
 			if(TransformComponent)
 			{
 				for(int i = 0; i < Components.Count; i++)
@@ -114,8 +111,7 @@ public class Expandable : UI_Base, IPointerEnterHandler, IPointerExitHandler
 		else
 		{
 			Target.sizeDelta = InitialDeltaSize;
-			if (!EventNames.Contains ("OnContract"))
-				EventNames.Add ("OnContract");
+			
 		}
 		ToggleValue = value;
 		if (ExpandableTransition) {

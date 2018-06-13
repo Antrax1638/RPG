@@ -20,7 +20,6 @@ public class PlayerControllerEditor : Editor
 		GUILayout.Label("RolePlayGame (RPG):");
 		GUILayout.Space (15);
 
-		Target.EnableInput = EditorGUILayout.Toggle (new GUIContent("Enable Input","Activates the imput on controller"),Target.EnableInput);
 		MouseTab ();
 		GUILayout.Space (5);
 		MovementTab ();
@@ -110,7 +109,9 @@ public class PlayerControllerEditor : Editor
 		ITab = EditorGUILayout.Foldout (ITab, "Input (Controller)", true);
 		if (ITab) 
 		{
-			GUI.skin.label.normal.textColor = Color.yellow;
+            GUI.skin.label.normal.textColor = Color.yellow;
+            GUILayout.Label("General:");
+            Target.InputMode = (InputMode)EditorGUILayout.EnumPopup("Input Mode", Target.InputMode);
 			GUILayout.Label ("Movement:");
 			Target.ForwardAction = EditorGUILayout.TextField ("Forward Action", Target.ForwardAction);
 			Target.BackwardAction = EditorGUILayout.TextField ("Backward Action", Target.BackwardAction);

@@ -7,6 +7,7 @@ public class UI_Hud : UI_Base
 {
     [Header("Hud Reference Properties:")]
     public UI_ActionBar ActionBar;
+    
 
     protected UI_Manager Manager;
 

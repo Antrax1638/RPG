@@ -21,9 +21,9 @@ public class UI_Item
 
 	public UI_Item(int id,Sprite icon,Vector2Int size)
 	{
-		Id = id;
-		Icon = icon;
-		Size = size;
+		this.Id = id;
+		this.Icon = icon;
+		this.Size = size;
 	}
 
 	public static bool operator==(UI_Item x,UI_Item y)
@@ -34,6 +34,11 @@ public class UI_Item
 	public static bool operator!=(UI_Item x,UI_Item y)
 	{
         return (x.Id != y.Id) && (x.Size != y.Size) && (x.Icon != y.Icon);
+    }
+
+    public virtual bool Equal(UI_Item other)
+    {
+        return (this.Id == other.Id && this.Size == other.Size && this.Icon == other.Icon);
     }
 
 	public override bool Equals(object other)

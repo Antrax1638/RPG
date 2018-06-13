@@ -5,32 +5,51 @@ using UnityEngine.UI;
 
 public class Item : MonoBehaviour 
 {
-	[Header("Item Properties:")]
+    [Header("Item Properties:")]
 	public int Id;
 	public string Name;
 	public TextAsset Description;
 	public EWeapon Type;
 	public Sprite Icon;
 	public Vector2Int Size;
+    public int State = -1;
+
+    [Header("Interactable:")]
+    public GameObject Interactable;
+    public Vector3 InteractableOffset;
 
 	[HideInInspector] public UI_Item Interface {get{ return ItemInterface; }}
 
 	private UI_Item ItemInterface;
+    private GameObject InteractableObject;
 
 	void Awake ()
 	{
 		ItemInterface = new UI_Item (Id, Icon, Size);
+        State = 0;
+
+        //Aca empieza el hardcodeo
+        Button BT = GetComponentInChildren<Button>();
+        BT.onClick.AddListener(PickUp);
+        Text Txt = GetComponentInChildren<Text>();
+        Txt.text = Name;
+        InteractableObject = transform.Find("Interactable").gameObject;
+        InteractableObject.transform.localPosition = InteractableObject.transform.localPosition + InteractableOffset;
 	}
 
-	void Update () {
-		
+	void Update ()
+    {
+        if (InteractableObject) {
+            InteractableObject.transform.LookAt(Camera.main.transform);
+        }
 	}
 
 	public virtual void PickUp()
 	{
 		if(gameObject.activeInHierarchy)
 		{
-			gameObject.SetActive (false);	
+            State = 1;
+            gameObject.SetActive (false);	
 		}
 	}
 
@@ -38,7 +57,8 @@ public class Item : MonoBehaviour
 	{
 		if(!gameObject.activeInHierarchy)
 		{
-			gameObject.SetActive (true);
+            State = 0;
+            gameObject.SetActive (true);
 		}
 	}
 

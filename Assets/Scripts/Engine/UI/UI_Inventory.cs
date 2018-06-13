@@ -9,7 +9,6 @@ public class UI_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 	public static Vector2Int InvalidIndex = new Vector2Int(-1,-1);
 	public const int Null = 0;
 
-
 	[Header("General Properties:")]
     public bool Safe;
     public GameObject Slot;
@@ -28,6 +27,7 @@ public class UI_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
     [HideInInspector] public int Length { get { return Size.x * Size.y; }}
     [HideInInspector] public UI_InventorySlot HoveredSlot;
+    [HideInInspector] public int State { get { return LastState; } }
 
     GameObject GridPanel,SlotTemp;
 	private RectTransform TransformComponent;
@@ -37,6 +37,7 @@ public class UI_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     private bool MouseOver = false;
 
 	protected GameObject[,] GridCells;
+    protected int LastState = 1;
 
 	int Width,Height;
 	UI_Item Temp = UI_Item.invalid;
@@ -105,7 +106,7 @@ public class UI_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 				SlotComponent = GridCells [x, y].GetComponent<UI_InventorySlot> ();
                 if (SlotComponent) {
                     SlotComponent.Position = new Vector2Int(x, y);
-                    SlotComponent.Item = UI_Item.invalid;
+                    SlotComponent.Item = new UI_Item();
                 } else {
                     Debug.LogError("UI_Inventory: " + GridCells[x, y].name + " Inventory slot component is null.");
                 }
@@ -117,9 +118,7 @@ public class UI_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 	protected void Update () 
 	{
         //HighLightUpdate();
-        
-
-		if(Input.GetKeyDown(KeyCode.Alpha1))
+		if(Input.GetKeyDown(KeyCode.C))
 		{
 			Temp = new UI_Item(DebugId,DebugIcon,DebugSize);
 			AddItem(Temp,DebugPos);
@@ -161,10 +160,10 @@ public class UI_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 			Debug.Log (info);
 	}
 
-    protected bool ValidateItemFormat(UI_Item Item)
+    //Publicas:
+    public bool ValidateItemFormat(UI_Item Item)
     {
         bool Validate = true;
-        Validate &= Item != UI_Item.invalid;
         Validate &= Item.Size.x > 0;
         Validate &= Item.Size.y > 0;
         Validate &= Item.Icon != null;
@@ -173,13 +172,13 @@ public class UI_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         DebugLog("Item " + Validate + " Format.");
         return Validate;
     }
-
-
-	//Publicas:
-	public Vector2Int AddItem(UI_Item NewItem,Vector2Int Position)
-    { 
-        if (!ValidateItemFormat(NewItem))
-			return UI_Inventory.InvalidIndex;
+    
+    public Vector2Int AddItem(UI_Item NewItem, Vector2Int Position)
+    {
+        if (!ValidateItemFormat(NewItem)) {
+            LastState = -1;
+            return UI_Inventory.InvalidIndex;
+        }
 		
 		bool ValidIndex = false, ValidSlot = true;
 		Vector2Int Index = UI_Inventory.InvalidIndex;
@@ -200,10 +199,10 @@ public class UI_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 				PointerValid = (x < GridCells.GetLength(0)) && (y < GridCells.GetLength(1));
 				if (PointerValid)
 				{
-					Slot = GridCells [x, y].GetComponent<UI_InventorySlot> ();
+                    Slot = GridCells [x, y].GetComponent<UI_InventorySlot> ();
 					if (Slot && Slot.Item == UI_Item.invalid)
                     {
-						ValidSlot &= true;
+                        ValidSlot &= true;
 						Slot.SetVisibility (Visiblility.Hidden);
 						Slot.Item = NewItem;
 						DeactivatedSlots.Add (Slot.gameObject);
@@ -218,15 +217,14 @@ public class UI_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 					ValidSlot &= false;
 			}
 		}
-			
-		if (ValidIndex && ValidSlot)
+
+        if (ValidIndex && ValidSlot)
 		{
 			DebugLog ("Item Added: to [" + Position.x + "-" + Position.y + "]");
-            
             Slot = GridCells[Position.x, Position.y].GetComponent<UI_InventorySlot>();
             Slot.SetVisibility(Visiblility.Visible);
+            Slot.SetScale(NewItem.Size);//Problema con la escala
             Slot.SetIcon(NewItem.Icon);
-            Slot.SetScale(NewItem.Size);
             Slot.Item = NewItem;
 
             if (UnSymGridPanelComponent)
@@ -235,6 +233,7 @@ public class UI_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
                 int MaxIndex = Mathf.Max(HierarchyIndex.ToArray());
                 Slot.transform.SetSiblingIndex(MaxIndex);
                 HierarchyIndex.Clear();
+                LastState = 1;
             }
 
             if (GridPanelComponent)
@@ -249,6 +248,7 @@ public class UI_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
                         DeactivatedSlot.RaycastMode = UI_Slot.RaycastFilter.Inactive;
                     }
                 }
+                LastState = 1;
                 DeactivatedSlots.Clear();
             }
 			
@@ -256,15 +256,20 @@ public class UI_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 		}
 		else 
 		{
-			DebugLog ("Inventory space unavailable.");
+            LastState = 0;
+            DebugLog("Inventory space unavailable:");
+            DebugLog("Slots Deactivated: " + DeactivatedSlots.Count);
+            DebugLog("Index: [" + ValidIndex + "]");
+            DebugLog("Slot: [" + ValidSlot + "]");
+        
 			for (int i = 0; i < DeactivatedSlots.Count; i++)
 			{
 				Slot = DeactivatedSlots [i].GetComponent<UI_InventorySlot> ();
 				if (Slot && Slot.Item == NewItem || Slot.Item == UI_Item.invalid) 
 				{
 					Slot.SetVisibility (Visiblility.Visible);
-					Slot.Item = UI_Item.invalid;
-					Slot.SetIcon (null);
+                    Slot.Item = new UI_Item();
+                    Slot.SetIcon (null);
 					Slot.SetScale (new Vector2 (1, 1));
 				}
 			}
@@ -272,6 +277,26 @@ public class UI_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 		}
 		return Index;
 	}
+
+    public Vector2Int AddItem(UI_Item NewItem,GameObject Slot)
+    {
+        if (!ValidateItemFormat(NewItem))
+            return InvalidIndex;
+
+        Vector2Int Index = InvalidIndex;
+        UI_EquipSlot SlotComponent = Slot.GetComponent<UI_EquipSlot>();
+        if(SlotComponent)
+        {
+            DebugLog("Item added to Equipament Slot: [" + SlotComponent.Id + "]");
+            SlotComponent.SetVisibility(Visiblility.Visible);
+            SlotComponent.SetIcon(NewItem.Icon);
+            SlotComponent.SetScale(NewItem.Size);
+            SlotComponent.Item = NewItem;
+            Index = new Vector2Int(SlotComponent.Id, SlotComponent.Id);
+        }
+
+        return Index;
+    }
 
 	public bool RemoveItem(Vector2Int Position)
 	{
@@ -288,8 +313,8 @@ public class UI_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 		{
 			Slot.SetIcon (null);
 			Slot.SetScale (new Vector2Int (1, 1));
-			Slot.Item = UI_Item.invalid;
-			Slot.SetVisibility (Visiblility.Visible);
+            Slot.Item = new UI_Item();
+            Slot.SetVisibility (Visiblility.Visible);
 			Success = true;
 		}
 
@@ -302,8 +327,8 @@ public class UI_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 				{
 					Slot.SetIcon (null);
 					Slot.SetScale (new Vector2Int (1, 1));
-					Slot.Item = UI_Item.invalid;
-					Slot.SetVisibility (Visiblility.Visible);
+                    Slot.Item = new UI_Item();
+                    Slot.SetVisibility (Visiblility.Visible);
                     Slot.RaycastMode = UI_Slot.RaycastFilter.Active;
                     Success &= true;
 				} 
@@ -315,6 +340,25 @@ public class UI_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
 		return Success;
 	}
+
+    public bool RemoveItem(GameObject Slot)
+    {
+        bool Success = false;
+
+        UI_EquipSlot SlotComponent = Slot.GetComponent<UI_EquipSlot>();
+        if (SlotComponent)
+        {
+            SlotComponent.SetVisibility(Visiblility.Visible);
+            SlotComponent.SetScale(new Vector2Int(1, 1));
+            SlotComponent.SetIcon(null);
+            SlotComponent.Item = new UI_Item();
+            Success = true;
+            DebugLog("Item Removed Successfully: " + SlotComponent.Id);
+        }
+
+        return Success;
+        
+    }
 
 	public bool RemoveItem(UI_Item Item)
 	{

@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Slot
   - MainHud
+  - Canvas
+  - WorldCanvas
   layers:
   - Default
   - TransparentFX

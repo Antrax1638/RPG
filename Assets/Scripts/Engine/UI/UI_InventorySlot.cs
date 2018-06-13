@@ -15,12 +15,12 @@ public class UI_InventorySlot : UI_Slot
 
     [Header("Inventory Slot Properties:")]
     public bool Inventory;
-	public UI_Item Item = UI_Item.invalid;
+	public UI_Item Item = new UI_Item();
 	public bool RemoveEvent = false;
-	public RemoveType Remove = UI_InventorySlot.RemoveType.RemoveOnDrop;
+	public RemoveType Remove = RemoveType.RemoveOnDrop;
 
 	private UI_Inventory ParentInventory;
-	private UI_Item TempDrag = UI_Item.invalid;
+	private UI_Item TempDrag = new UI_Item();
 
 	protected override void Awake()
 	{
@@ -49,7 +49,12 @@ public class UI_InventorySlot : UI_Slot
 	{
 		base.OnBeginDrag (Data);
 
-        if (Inventory && Remove == RemoveType.RemoveOnDrag)
+        UI_Drag DragObject = DragComponent.GetComponent<UI_Drag>();
+        if (DragObject && Item != UI_Item.invalid) {
+            DragObject.DragSize = Item.Size;
+        }
+
+        if (Inventory && Remove == RemoveType.RemoveOnDrag && RemoveEvent)
         {
             TempDrag = Item;
             ParentInventory.RemoveItem(Position);
@@ -80,6 +85,7 @@ public class UI_InventorySlot : UI_Slot
 	{
         if (Inventory && ParentInventory)
             ParentInventory.HoveredSlot = null;
+
         base.OnPointerExit (Data);
 	}
 
@@ -88,21 +94,45 @@ public class UI_InventorySlot : UI_Slot
 		if (Visible == Visiblility.Hidden)
 			return;
 
-		UI_InventorySlot SlotComponent = Slot.GetComponent<UI_InventorySlot> ();
-		if (Inventory && SlotComponent) 
+		UI_InventorySlot InventoryComponent = Slot.GetComponent<UI_InventorySlot> ();
+		if (Inventory && InventoryComponent) 
 		{
-			UI_Item Item = (this.Item != UI_Item.invalid) ? this.Item : TempDrag;
-			Vector2Int NewPosition = ParentInventory.AddItem (Item,SlotComponent.Position);
-			if (NewPosition != UI_Inventory.InvalidIndex) {
-				if (Remove == RemoveType.RemoveOnDrop) {
-					ParentInventory.RemoveItem (Position);
-				}
-
-			} else {
-				if (Remove == RemoveType.RemoveOnDrag) {
-					ParentInventory.AddItem (Item, Position);
-				}
-			}
+			UI_Item Item = (Remove == RemoveType.RemoveOnDrag) ? TempDrag : this.Item;
+            Vector2Int NewPosition = ParentInventory.AddItem (Item, InventoryComponent.Position);
+            if (NewPosition != UI_Inventory.InvalidIndex)
+            {
+                if (Remove == RemoveType.RemoveOnDrop && RemoveEvent)
+                {
+                    ParentInventory.RemoveItem(Position);
+                }
+            }
+            else
+            {
+                if (Remove == RemoveType.RemoveOnDrag)
+                    ParentInventory.AddItem(Item, Position);
+            } 
+            
 		}
+
+        UI_EquipSlot EquipComponent = Slot.GetComponent<UI_EquipSlot>();
+        if (EquipComponent && EquipComponent.Inventory)
+        {
+            UI_Item Item = (Remove == RemoveType.RemoveOnDrag) ? TempDrag : this.Item;
+            Vector2Int NewId = EquipComponent.Inventory.AddItem(Item, Slot);
+            if(NewId != UI_Inventory.InvalidIndex)
+            {
+                if (Remove == RemoveType.RemoveOnDrop && RemoveEvent)
+                {
+                    ParentInventory.RemoveItem(Position);
+                }
+            }
+            else
+            {
+                if (Remove == RemoveType.RemoveOnDrag)
+                    ParentInventory.AddItem(Item, Position);
+            }
+
+            print("Cast To Equip slot");
+        }
 	}
 }

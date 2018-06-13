@@ -15,11 +15,11 @@ public class UI_Window : UI_Base, IPointerClickHandler, IDragHandler , IBeginDra
     public bool Toggleable;
     public KeyModifier ToggleModifier;
     public string ToggleAction;
+    public KeyCode CloseKey = KeyCode.Escape;
 
     [Header("Focus Properties:")]
     public bool Focusable;
 
-    public KeyCode CloseKey = KeyCode.Escape;
 	[HideInInspector] public bool Activated { get{return IsActivated;} }
 
 	protected Vector2 InitialPivotPoint = Vector2.zero;
@@ -63,9 +63,6 @@ public class UI_Window : UI_Base, IPointerClickHandler, IDragHandler , IBeginDra
 		
 		if (Focusable)
 		{
-			if (!EventNames.Contains ("OnPointerClick"))
-				EventNames.Add ("OnPointerClick");
-
 			TransformComponent.SetAsLastSibling ();
 			UI_Manager.Instance.Focus = gameObject;
 		}
@@ -78,8 +75,6 @@ public class UI_Window : UI_Base, IPointerClickHandler, IDragHandler , IBeginDra
 		
 		if (Draggable && UI_Manager.Instance.InputKeyModifier(DragModifier) && CanDrag)
 		{
-			if (!EventNames.Contains ("OnDrag"))
-				EventNames.Add ("OnDrag");
             Vector2 Position = Input.mousePosition;
 			TransformComponent.anchoredPosition = Position + DragOffset;
 		}
@@ -98,9 +93,7 @@ public class UI_Window : UI_Base, IPointerClickHandler, IDragHandler , IBeginDra
 
 		if (Draggable && UI_Manager.Instance.InputKeyModifier(DragModifier))
         {
-			if (!EventNames.Contains ("OnBeginDrag"))
-				EventNames.Add ("OnBeginDrag");
-
+			
             if(DragFilter != null && DragFilter.Length > 0)
             {
                 CanDrag = false;
@@ -129,8 +122,6 @@ public class UI_Window : UI_Base, IPointerClickHandler, IDragHandler , IBeginDra
 	{
 		Dragged = false;
         CanDrag = true;
-        if (!EventNames.Contains ("OnEndDrag"))
-			EventNames.Add ("OnEndDrag");
 	}
 		
 	public void CloseWindow()
@@ -142,9 +133,6 @@ public class UI_Window : UI_Base, IPointerClickHandler, IDragHandler , IBeginDra
 		}
 		IsActivated = false;
 		this.gameObject.SetActive (true);
-
-		if (!EventNames.Contains ("OnWindowClose"))
-			EventNames.Add ("OnWindowClose");
 	}
 
 	public void OpenWindow()
@@ -157,8 +145,6 @@ public class UI_Window : UI_Base, IPointerClickHandler, IDragHandler , IBeginDra
 		IsActivated = true;
 		this.gameObject.SetActive (true);
 
-		if (!EventNames.Contains ("OnWindowOpen"))
-			EventNames.Add ("OnWindowOpen");
 	}
 
 	public void ToggleWindow()

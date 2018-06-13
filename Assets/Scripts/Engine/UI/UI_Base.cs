@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+[RequireComponent(typeof(CanvasGroup))]
 public class UI_Base : MonoBehaviour
 {
 	protected Visiblility Visible = Visiblility.Visible;
@@ -11,15 +12,9 @@ public class UI_Base : MonoBehaviour
 	protected RectTransform[] TransformComponents;
 	protected Text[] TextComponents;
 
-	[HideInInspector] public List<string> EventNames = new List<string> ();
-
-	public virtual bool CheckEvent(string name)
-	{
-		if(EventNames != null){
-			return EventNames.Contains (name);
-		}
-		return false;
-	}
+    protected CanvasGroup CanvasGroupComponent;
+    private float OldAlpha;
+    private bool OldInteractable, OldRaycast;
 
 	public virtual Image GetImage(int Index)
 	{
@@ -81,7 +76,33 @@ public class UI_Base : MonoBehaviour
 		return null;
 	}
 
-	public void SetVisibility(Visiblility NewVisibility)
+    public void SetVisibility(Visiblility NewVisiblility)
+    {
+        if (CanvasGroupComponent)
+        {
+            Visible = NewVisiblility;
+            switch (Visible)
+            {
+                case Visiblility.Visible:
+                    CanvasGroupComponent.alpha = OldAlpha;
+                    CanvasGroupComponent.blocksRaycasts = OldRaycast;
+                    CanvasGroupComponent.interactable = OldInteractable;
+                    break;
+
+                case Visiblility.Hidden:
+                    OldAlpha = CanvasGroupComponent.alpha;
+                    OldRaycast = CanvasGroupComponent.blocksRaycasts;
+                    OldInteractable = CanvasGroupComponent.interactable;
+
+                    CanvasGroupComponent.alpha = 0.0f;
+                    CanvasGroupComponent.blocksRaycasts = false;
+                    CanvasGroupComponent.interactable = false;
+                    break;
+            }
+        }
+    }
+
+	/*public void SetVisibility(Visiblility NewVisibility)
 	{
 		Visible = NewVisibility;
 		Color TempColor;
@@ -124,5 +145,5 @@ public class UI_Base : MonoBehaviour
 			}
 			break;
 		}
-	}
+	}*/
 }

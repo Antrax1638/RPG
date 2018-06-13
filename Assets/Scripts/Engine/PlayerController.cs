@@ -4,6 +4,15 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
+public enum InputMode
+{
+    Game,
+    Interface,
+    GameAndInterface,
+    None
+}
+
+[System.Serializable]
 public enum MovementMode
 {
 	None,
@@ -23,8 +32,6 @@ public enum CameraAxis
 [RequireComponent(typeof(CapsuleCollider))]
 public class PlayerController : MonoBehaviour
 {
-	public bool EnableInput = true;
-
 	[Header("Mouse")]
 	public bool MouseLookAt;
 	public float MouseRayLength = 40.0f;
@@ -68,8 +75,9 @@ public class PlayerController : MonoBehaviour
 	public ForceMode JumpMode = ForceMode.Impulse;
 	public int JumpCap = 1;
 
-
-	public string 	ForwardAction = "Forward",
+    [Header("Input:")]
+    public InputMode InputMode;
+    public string 	ForwardAction = "Forward",
 					RightAction = "Right",
 					LeftAction = "Left",
 					BackwardAction = "Backward",
@@ -88,7 +96,7 @@ public class PlayerController : MonoBehaviour
 
 	//Private:
 	RaycastHit MouseRayHit,GroundRayHit;
-	bool MouseHit,IsGrounded;
+	bool MouseHit,IsGrounded,EnabledInput;
 	int JumpCount = 0;
 	Vector3 Direction = Vector3.zero;
 	float AirControlSpeed = 0.0f;
@@ -129,12 +137,11 @@ public class PlayerController : MonoBehaviour
 
 	void FixedUpdate () 
 	{
-		if (EnableInput) 
-		{
-			CameraUpdate ();
-			CharacterUpdate ();
-			Movement ();
-		}
+        EnabledInput = (InputMode == InputMode.Game || InputMode == InputMode.GameAndInterface);
+
+        CameraUpdate ();
+		CharacterUpdate ();
+        Movement();
 	}
 
 	void CharacterUpdate()
@@ -153,7 +160,7 @@ public class PlayerController : MonoBehaviour
 	{
 		if (CameraComponent)
 		{
-			if (Input.GetButton(TurnLeftAction)) 
+			if (Input.GetButton(TurnLeftAction) && EnabledInput) 
 			{
 				switch (CameraTurnAxis)
 				{
@@ -163,7 +170,7 @@ public class PlayerController : MonoBehaviour
 					default: break;
 				}
 			}
-			if (Input.GetButton (TurnRightAction)) 
+			if (Input.GetButton (TurnRightAction) && EnabledInput) 
 			{
 				switch (CameraTurnAxis)
 				{
@@ -195,7 +202,8 @@ public class PlayerController : MonoBehaviour
 		Look |= Input.GetButton (SecondMouseAction) && MouseAction == 1;
 		Look |= Input.GetButton (MiddleMouseAction) && MouseAction == 2;
 		Look |= MouseAction < 0;
-		if (MouseLookAt && Look) 
+
+        if (MouseLookAt && Look && EnabledInput) 
 		{
 			Vector3 Direction = transform.position - MouseRayHit.point;
 			Direction = Vector3.RotateTowards (transform.forward, Direction.normalized, MouseRotationRate * Time.fixedDeltaTime,0.0f);
@@ -217,10 +225,10 @@ public class PlayerController : MonoBehaviour
 		AirControlSpeed = (AirControl && !IsGrounded) ? AirControlScale : 1.0f;
 		int InputButton = Convert.ToInt32 (Input.GetButton (FirstMouseAction) || Input.GetButton(SecondMouseAction) || Input.GetButton(MiddleMouseAction));
 
-		if (IsGrounded)
+		if (IsGrounded && EnabledInput)
 		{
 			Direction = Vector3.zero;
-			switch (MovMode) 
+			switch (MovMode)
 			{
 			case MovementMode.Mouse:
 				if (MouseLookAt && Look) 
@@ -300,7 +308,7 @@ public class PlayerController : MonoBehaviour
 		}
 
 
-		if (Input.GetButtonDown (JumpAction) && JumpCount < JumpCap)
+		if (Input.GetButtonDown (JumpAction) && JumpCount < JumpCap && EnabledInput)
 		{
 			BodyComponent.AddForce ( Vector3.up * JumpForce, JumpMode);
 			JumpCount++;

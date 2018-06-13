@@ -13,13 +13,12 @@ public class UI_Slot : UI_Base, IPointerEnterHandler, IPointerExitHandler, IDrag
         Inactive
     }
 
-    [HideInInspector]
 	public bool IsOver{get{ return MouseOver; }}
     public static GameObject DragObject { get { return DragComponent; } }
 
 	[Header("Slot Properties:")]
 	public Color OverColor = Color.white;
-	public bool AdjustSize;
+	[Tooltip("Only use if achors are point type.")] public bool AdjustSize;
 	[SerializeField] private string SlotTag = "Slot";
 	public Vector2Int Position;
     public RaycastFilter RaycastMode = RaycastFilter.Active;
@@ -52,7 +51,7 @@ public class UI_Slot : UI_Base, IPointerEnterHandler, IPointerExitHandler, IDrag
 	private Color[] DefaultColor;
 	private RectTransform TransformComponent;
 
-	private static GameObject DragComponent,ToolTipComponent;
+	protected static GameObject DragComponent,ToolTipComponent;
 	private List<RaycastResult> RayCastResults = new List<RaycastResult>();
 	private GameObject[] HoverObjects;
 	private GameObject HoverObject;
@@ -66,8 +65,17 @@ public class UI_Slot : UI_Base, IPointerEnterHandler, IPointerExitHandler, IDrag
 			Debug.LogError ("UI_Slot: Image components are null");
 
 		TransformComponents = GetComponentsInChildren<RectTransform> ();
-		if(TransformComponents.Length <= 0)
-			Debug.LogError ("UI_Slot: Transform components are null");
+        if (TransformComponents == null || TransformComponents.Length <= 0)
+            Debug.LogError("UI_Slot: Transform components are null");
+        else
+        {
+            RectTransform CastTransform = transform as RectTransform;
+            for (int i = 0; i < TransformComponents.Length && AdjustSize; i++)
+            {
+                if(TransformComponents[i].anchorMin != Vector2.zero && TransformComponents[i].anchorMax != Vector2.one)
+                    TransformComponents[i].sizeDelta = CastTransform.sizeDelta;
+            }
+        }
 
 		DefaultColor = new Color[ImageComponents.Length];
 		for (int i = 0; i < ImageComponents.Length; i++) {
@@ -77,7 +85,7 @@ public class UI_Slot : UI_Base, IPointerEnterHandler, IPointerExitHandler, IDrag
 		TransformComponent = GetComponent<RectTransform> ();
 		if (!TransformComponent)
 			Debug.Log ("UI_Slot: rect transform component is null");
-
+       
 		DragComponent = null;
 		ToolTipComponent = null;
 	}
@@ -106,49 +114,6 @@ public class UI_Slot : UI_Base, IPointerEnterHandler, IPointerExitHandler, IDrag
 		DragKey = UI_Manager.Instance.InputKeyModifier (DragKeyModifier);
 	}
 
-	public Sprite GetIcon()
-	{
-		bool Valid;
-		Valid = (transform.childCount > 0);
-		Valid &= (GetComponentsInChildren<Image> ().Length > 0);
-		if (Valid)
-			return GetImage ("Icon").sprite;
-		else {
-			Image Component = GetComponent<Image> ();
-			return (Component) ? Component.sprite : null;
-		}
-	}
-		
-	public void SetIcon(Sprite Icon)
-	{
-		bool Valid;
-		Valid = (transform.childCount > 0);
-		Valid &= (GetComponentsInChildren<Image> ().Length > 0);
-		if (Valid) 
-		{
-			Image Temp = GetImage ("Icon");
-			Temp.sprite = Icon;
-			bool Active;
-			if (Temp) 
-			{
-				Temp.sprite = Icon;
-				Active = (Temp.sprite != null);
-				Temp.gameObject.SetActive (Active);
-			} 
-			else 
-			{
-				Debug.LogError ("UI_Slot: Icon image component is null");
-				Active = false;
-			}
-		}
-		else
-		{
-			Image Component = GetComponent<Image> ();
-			if (Component)
-				Component.sprite = Icon;
-		}
-	}
-		
 	protected void InstantiateOverlay()
 	{
 		if (!OverlayObject && Overlay) 
@@ -184,23 +149,6 @@ public class UI_Slot : UI_Base, IPointerEnterHandler, IPointerExitHandler, IDrag
 		Destroy (ToolTipComponent);
 	}
 
-	public void SetScale(Vector2 Scale)
-	{
-		TransformComponent.localScale = Scale;
-		if (AdjustSize) 
-		{
-			for (int i = 1; i < TransformComponents.Length; i++) 
-			{
-				TransformComponents [i].sizeDelta = TransformComponent.sizeDelta;
-			}
-		}
-	}
-
-	public Vector2 GetScale()
-	{
-		return TransformComponent.localScale;
-	}
-
 	protected void UpdateDrag(PointerEventData Data)
 	{
 		Data.position = Input.mousePosition;
@@ -219,9 +167,53 @@ public class UI_Slot : UI_Base, IPointerEnterHandler, IPointerExitHandler, IDrag
 			}
 		}
 	}
-		
-	//Functions publicas:
-	public virtual void OnBeginDrag(PointerEventData Data)
+
+    //Functions publicas:
+    public Sprite GetIcon()
+    {
+        bool Valid;
+        Valid = (transform.childCount > 0);
+        Valid &= (GetComponentsInChildren<Image>().Length > 0);
+        if (Valid)
+            return GetImage("Icon").sprite;
+        else
+        {
+            Image Component = GetComponent<Image>();
+            return (Component) ? Component.sprite : null;
+        }
+    }
+
+    public void SetIcon(Sprite Icon)
+    {
+        bool Active;
+        Image TempImage = GetImage("Icon");
+        if (TempImage)
+        {
+            TempImage.sprite = Icon;
+            Active = (TempImage.sprite != null);
+            TempImage.gameObject.SetActive(Active);
+        }
+    }
+
+    public void SetScale(Vector2 Scale)
+    {
+        TransformComponent.localScale = new Vector3(Scale.x, Scale.y, 1);
+        if (AdjustSize)
+        {
+            for (int i = 0; i < TransformComponents.Length; i++)
+            {
+                if(TransformComponents[i].anchorMin != Vector2.zero && TransformComponents[i].anchorMax != Vector2.one)
+                    TransformComponents[i].sizeDelta = TransformComponent.sizeDelta;
+            }
+        }
+    }
+
+    public Vector2 GetScale()
+    {
+        return TransformComponent.localScale;
+    }
+
+    public virtual void OnBeginDrag(PointerEventData Data)
 	{
 		if (Visible == Visiblility.Hidden)
 			return;
@@ -235,7 +227,7 @@ public class UI_Slot : UI_Base, IPointerEnterHandler, IPointerExitHandler, IDrag
 			UI_Drag Temp = DragComponent.GetComponent<UI_Drag> ();
 			Temp.name = name;
 			Temp.DragIcon = GetIcon ();
-            Temp.DragPosition = Position; 
+            Temp.DragPosition = Position;
 			Temp.OnBeginDrag ();
 		}
 	}
