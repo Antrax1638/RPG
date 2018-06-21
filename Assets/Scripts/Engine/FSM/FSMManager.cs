@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class FSMManager : MonoBehaviour 
 {
-	public State Default;
+    [Header("States:")]
+    public State Default;
 
 	private GameObject DefaultObject;
 
@@ -24,7 +25,6 @@ public class FSMManager : MonoBehaviour
 	{
 		if(Default.TransitionPass)
 		{
-			
 			GameObject OldObject = DefaultObject;
 			State OldState = Default;
 			if (OldState.TransitionState != null) 

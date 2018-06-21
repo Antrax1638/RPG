@@ -16,29 +16,29 @@ public class Sences : MonoBehaviour
 
 	[Header("General Sences")]
 	public bool Enable;
-	public float AudioMemory = 0.0f;
-	public float SightMemory = 0.0f;
+    public float Memory = 0.0f;
 	public float FieldOfView = 90.0f;
-	[Tooltip("Filter all objects that this object can detect in the inmediate range.")]
-	public string[] Tags;
-	[Tooltip("Currently used player controller-character tag.")]
-	public string PlayerTag = "Player";
-	public Detection State;
-	public float Instinct;
+    public Detection State;
+    public float Instinct;
+
+    [Header("Filters:")]
+    [Tooltip("Currently used player controller-character tag.")] public string PlayerTag = "Player";
+    [Tooltip("Filter all objects that this object can detect in the inmediate range.")]public string[] Tags;
+
+    [Header("Threat:")]
 	public float ThreatGainRate;
 	public float ThreatLossRate;
-
-	[Header("Movement Sences:")]
-	public float UpdateRate = 0.1f;
-	public float ReductionFactor = 0.5f;
-
+    public float ThreatLimit;
+    public float ThreatDelay;
+	public float ThreatLossMultiplier = 2.0f;
+ 
 	private SphereCollider SphereComponent;
 	private State StateComponent;
+    private Rigidbody BodyComponent;
 	private Dictionary<string,GameObject> ObjectsSenced = new Dictionary<string, GameObject>();
 	private Dictionary<string,float> ObjectsThreat = new Dictionary<string, float> ();
 	RaycastHit Hit;
-	Vector3 Direction,LastPosition;
-	bool isMoving;
+	Vector3 Direction,Velocity;
 
 	GameObject Target;
 
@@ -52,17 +52,20 @@ public class Sences : MonoBehaviour
 		if(!StateComponent)
 			Debug.LogError("AI_Sences: State component is null");
 
-		if (Tags == null || Tags.Length <= 0) {
+        BodyComponent = GetComponent<Rigidbody>();
+        if (!BodyComponent) BodyComponent = GetComponentInChildren<Rigidbody>();
+        if (!BodyComponent) Debug.LogWarning("Body component is null");
+
+        if (Tags == null || Tags.Length <= 0) {
 			Tags = new string[1];
 			Tags [0] = PlayerTag;
 		}
 
-		InvokeRepeating ("OnMovementInvoke", 0, UpdateRate);
 	}
 
 	void Update()
 	{
-		isMoving = (transform.position != LastPosition);
+        if (BodyComponent) Velocity = BodyComponent.velocity;    
 	}
 
 	void OnTriggerEnter(Collider Other)
@@ -70,14 +73,19 @@ public class Sences : MonoBehaviour
 		if (!Enable)
 			return;
 
-		for (int i = 0; i < Tags.Length; i++) {
-			if (Other.tag == Tags [i]) {
-				ObjectsSenced.Add (Tags [i], Other.gameObject);
-				ObjectsThreat.Add (Other.gameObject.name, 0.0f);
+		for (int i = 0; i < Tags.Length; i++)
+        {
+			if (Other.tag == Tags [i])
+            {
+                if(!ObjectsSenced.ContainsKey(Other.tag))
+                    ObjectsSenced.Add (Tags [i], Other.gameObject);
+
+                if(!ObjectsThreat.ContainsKey(Other.name))
+                    ObjectsThreat.Add (Other.name, 0.0f);
 			}	
 		}
-
-	}
+        State = Detection.Relaxed;
+    }
 
 	void OnTriggerStay(Collider Other)
 	{
@@ -91,50 +99,53 @@ public class Sences : MonoBehaviour
 		Direction = Distance.normalized;
 		this.Direction = Direction;
 		float Angle = Vector3.Angle (Direction, transform.forward);
-		if(Angle < (FieldOfView/2.0f) )
+		if(Angle < (FieldOfView/2.0f))
 		{
-			if(Physics.Raycast (transform.position, Direction,out Hit,Distance.magnitude))
+            State = Detection.Alerted;
+            if (Physics.Raycast (transform.position, Direction,out Hit,Distance.magnitude))
 			{
 				string HitTag = Hit.collider.tag;
 				TargetHit = (HitTag == Other.tag);
-				ObjectsThreat [Other.name] += ThreatGainRate;
-			}
-		}
+				ObjectsThreat [Other.name] += (1.0f/ThreatGainRate);
+                Invoke("ThreatInvoke", ThreatDelay);
+            }
+        }
 		else
 		{
-			ObjectsThreat [Other.name] = (!isMoving) ? ObjectsThreat[Other.tag] - ThreatLossRate : ObjectsThreat[Other.tag];
-
-		}
-		/*if (Physics.Raycast (transform.position, Direction,out Hit,Distance.magnitude)) 
-		{
-			string HitTag = Hit.collider.gameObject.tag;
-			if (HitTag == Other.tag) 
-			{
-				if (Other.tag == PlayerTag) {
-					StateComponent.GetTransitionByName ("Chase").Enter = true;
-				}
-
-			}
-		}*/
+            State = Detection.Alerted;
+            if (ObjectsThreat.ContainsKey(Other.name))
+            {
+                float VelocityFactor = (Velocity.magnitude > 0.0f) ? ThreatLossMultiplier : 1.0f;
+                ObjectsThreat[Other.name] -= (1.0f / ThreatLossRate) * VelocityFactor;
+       
+            }
+        }
+        ObjectsThreat[Other.name] = Mathf.Clamp(ObjectsThreat[Other.name], 0.0f, 100.0f);
+      
+        if (ObjectsThreat[Other.name] > ThreatLimit)
+            Invoke("ThreatInvoke", ThreatDelay);
 	}
 
 	void OnTriggerExit(Collider Other)
 	{
-		ObjectsSenced.Clear ();
-		ObjectsThreat.Clear ();
+        Invoke("MemoryInvoke", Memory);
 	}
 
-	void UpdateThreat()
-	{
-		
-	}
+    void MemoryInvoke()
+    {
+        ObjectsSenced.Clear();
+        ObjectsThreat.Clear();
+        State = Detection.Relaxed;
+    }
 
-	void OnMovementInvoke()
-	{
-		LastPosition = transform.position;
-	}
+    void ThreatInvoke()
+    {
+        State = Detection.Detected;
 
-	void OnDrawGizmos()
+        StateComponent.GetTransitionByName("Chase").Enter = true;
+    }
+
+    void OnDrawGizmos()
 	{
 		Gizmos.DrawRay (transform.position, Direction);
 		Gizmos.color = Color.red;

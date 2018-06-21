@@ -18,22 +18,36 @@ public class PlayerCharacter : Character
 	public float DetectionLength = 1.0f;
 	public LayerMask DetectionMask;
 
-	[Header("Actions")]
+    [Header("Actions")]
+    public string StayAction = "Stay";
 	public string PickUpAction = "PickUpAll";
+    public string PrimaryAttackAction = "Fire1";
+    public string SecondaryAttackAction = "Fire2";
 
-	
 
-	private Transform[] ObjectTransform;
+
+    private Transform[] ObjectTransform;
+    private AnimationState AnimationStateComponent;
 
 
 	void Awake ()
 	{
 		Inventory = new InventoryManager (InventorySize, Inventory.DebugMode);
-	}
+        AnimationStateComponent = GetComponent<AnimationState>();
+
+    }
 
 	void Update () 
 	{
+        Attacks();
         PickUpAll();
+
+        if (Stat.Health <= 0)
+        {
+            Stat.IsDead = true;
+            Destroy(gameObject);
+            Destroy(Controller.gameObject);
+        }
 
         if (Hud)
         {
@@ -45,6 +59,25 @@ public class PlayerCharacter : Character
 
         }
 	}
+
+    void Attacks()
+    {
+        bool Active = Input.GetButton(StayAction);
+        Controller.InputMode = (Active) ? InputMode.None : InputMode.Game;
+
+        if (Input.GetButtonDown(PrimaryAttackAction) && Active)
+        {
+            AnimationStateComponent.AttackValue = 1;
+            AnimationStateComponent.Attack(EWeapon.RightSword, 1);
+            
+        }
+
+        if (Input.GetButtonDown(SecondaryAttackAction) && Active)
+        {
+            AnimationStateComponent.AttackValue = 1;
+            AnimationStateComponent.Attack(EWeapon.RightSword, 2);
+        }
+    }
 
     void PickUp()
     {

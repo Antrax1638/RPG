@@ -21,13 +21,14 @@ GameObject:
   - component: {fileID: 4054908486770796}
   - component: {fileID: 114740740605782292}
   - component: {fileID: 114688224013824594}
+  - component: {fileID: 143028231938355036}
   m_Layer: 0
   m_Name: Chase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &4054908486770796
 Transform:
   m_ObjectHideFlags: 1
@@ -52,6 +53,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bbe91a6893b2f241b93c10c99e62250, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Target: {fileID: 0}
+  Radius: 50
+  Layer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  Speed: 2
+  JumpSpeed: 1
+  AttackSpeed: 1.5
+  AttackRange: 1
 --- !u!114 &114740740605782292
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -68,3 +78,20 @@ MonoBehaviour:
   DebugMode: 0
   TransitionPass: 0
   TransitionState: {fileID: 0}
+--- !u!143 &143028231938355036
+CharacterController:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1133666192820898}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Height: 2
+  m_Radius: 0.2
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 1, z: 0}

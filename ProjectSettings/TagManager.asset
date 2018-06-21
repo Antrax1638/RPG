@@ -8,6 +8,7 @@ TagManager:
   - MainHud
   - Canvas
   - WorldCanvas
+  - Zombie
   layers:
   - Default
   - TransparentFX
@@ -20,8 +21,8 @@ TagManager:
   - NoCollision
   - Player
   - Items
-  - 
-  - 
+  - Weapon
+  - Zombie
   - 
   - 
   - 
